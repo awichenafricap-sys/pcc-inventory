@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produce;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProduceController extends Controller
@@ -21,12 +22,19 @@ class ProduceController extends Controller
     public function index()
     {
         $produce = Produce::paginate(15);
-        return view('produce.index', compact('produce'));
+        $products = Product::with(['items.unit'])->orderBy('name')->get();
+
+        return view('produce.index', [
+            'produce' => $produce,
+            'products' => $products,
+        ]);
     }
 
     public function create()
     {
-        return view('produce.create');
+        $products = Product::with(['items.unit'])->orderBy('name')->get();
+
+        return view('produce.create', compact('products'));
     }
 
     public function store(Request $request)
@@ -44,7 +52,9 @@ class ProduceController extends Controller
 
     public function edit(Produce $produce)
     {
-        return view('produce.edit', compact('produce'));
+        $products = Product::with(['items.unit'])->orderBy('name')->get();
+
+        return view('produce.edit', compact('produce', 'products'));
     }
 
     public function update(Request $request, Produce $produce)

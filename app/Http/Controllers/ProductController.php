@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -20,13 +21,15 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::paginate(15);
+        $products = Product::withCount('items')->paginate(15);
         return view('products.index', compact('products'));
     }
 
     public function create()
     {
-        return view('products.create');
+        $items = Item::with('unit')->orderBy('name')->get();
+
+        return view('products.create', compact('items'));
     }
 
     public function store(Request $request)
@@ -34,16 +37,27 @@ class ProductController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'recipe' => 'nullable|array',
+            'recipe.*' => 'nullable|integer|min:0',
         ]);
 
-        Product::create($data);
+        $product = Product::create([
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+        ]);
+
+        $recipeData = $this->buildRecipeSyncData($request);
+        $product->items()->sync($recipeData);
 
         return redirect()->route('products.index')->with('success','Product created.');
     }
 
     public function edit(Product $product)
     {
-        return view('products.edit', compact('product'));
+        $product->load('items');
+        $items = Item::with('unit')->orderBy('name')->get();
+
+        return view('products.edit', compact('product', 'items'));
     }
 
     public function update(Request $request, Product $product)
@@ -51,9 +65,17 @@ class ProductController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'recipe' => 'nullable|array',
+            'recipe.*' => 'nullable|integer|min:0',
         ]);
 
-        $product->update($data);
+        $product->update([
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+        ]);
+
+        $recipeData = $this->buildRecipeSyncData($request);
+        $product->items()->sync($recipeData);
 
         return redirect()->route('products.index')->with('success','Product updated.');
     }
@@ -62,5 +84,25 @@ class ProductController extends Controller
     {
         $product->delete();
         return redirect()->route('products.index')->with('success','Product deleted.');
+    }
+
+    private function buildRecipeSyncData(Request $request): array
+    {
+        $recipe = collect($request->input('recipe', []))
+            ->mapWithKeys(fn ($quantity, $itemId) => [(int) $itemId => (int) $quantity])
+            ->filter(fn ($quantity) => $quantity > 0);
+
+        if ($recipe->isEmpty()) {
+            return [];
+        }
+
+        $validItemIds = Item::whereIn('id', $recipe->keys()->all())->pluck('id')->all();
+
+        $syncData = [];
+        foreach ($validItemIds as $itemId) {
+            $syncData[$itemId] = ['quantity_required' => $recipe->get($itemId)];
+        }
+
+        return $syncData;
     }
 }
