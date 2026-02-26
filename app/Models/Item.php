@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
@@ -25,5 +26,12 @@ class Item extends Model
     public function unit()
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class)
+            ->withPivot('quantity_required')
+            ->withTimestamps();
     }
 }

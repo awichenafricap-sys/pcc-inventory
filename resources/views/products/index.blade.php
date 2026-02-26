@@ -19,6 +19,7 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipe Items</th>
                                     <th class="px-6 py-3"></th>
                                 </tr>
                             </thead>
@@ -27,6 +28,7 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $product->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ Str::limit($product->description, 80) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->items_count }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <a href="{{ route('products.edit', $product) }}" class="text-primary-600 me-2">Edit</a>
                                             <form action="{{ route('products.destroy', $product) }}" method="POST" class="inline">@csrf @method('DELETE')<button class="text-red-600" onclick="return confirm('Delete product?')">Delete</button></form>
