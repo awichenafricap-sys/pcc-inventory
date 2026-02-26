@@ -39,6 +39,22 @@
                         </div>
 
                         <div class="col-span-12 sm:col-span-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Batch Code</label>
+                            <input type="text" name="batch_code" value="{{ old('batch_code') }}" class="block w-full" placeholder="BATCH-001" required>
+                            @error('batch_code')
+                                <span class="text-red-600 text-sm">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-span-12 sm:col-span-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Batch Date</label>
+                            <input type="text" name="batch_date" value="{{ old('batch_date', date('Y-m-d')) }}" class="date-picker block w-full" required>
+                            @error('batch_date')
+                                <span class="text-red-600 text-sm">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="col-span-12 sm:col-span-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
                             <input type="text" name="notes" value="{{ old('notes') }}" placeholder="Optional notes" class="block w-full">
                         </div>
