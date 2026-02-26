@@ -36,7 +36,7 @@
                             <div class="col-span-6 sm:col-span-2">
                                 <label class="block text-sm font-black text-gray-700 mb-2">Unit</label>
                                 <select name="unit_id" class="block w-full">
-                                    <option value="">-- none --</option>
+                                    <option value=""> none </option>
                                     @foreach($units as $unit)
                                         <option value="{{ $unit->id }}">{{ $unit->name }}</option>
                                     @endforeach
@@ -110,7 +110,7 @@
                         <table id="items-table" class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                                    <th class="px-4 py-3"></th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost/Unit</th>
@@ -192,7 +192,7 @@
                         <form action="/items/${item.id}" method="POST" class="inline">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="_token" value="${document.querySelector('input[name="_token"]').value}">
-                            <button class="text-red-600" onclick="return confirm('Delete item?')">Delete</button>
+                            <button class="text-red-600" onclick="return confirm('Are you sure you want to delete this item?')">Delete</button>
                         </form>
                     </td>
                 `;
@@ -212,12 +212,12 @@
 
                 // show success
                 if (successMsg) {
-                    successMsg.textContent = 'Item created.';
+                    successMsg.textContent = 'Item successfully created.';
                     setTimeout(() => successMsg.textContent = '', 3000);
                 }
 
             } catch (err) {
-                alert('Could not save item.');
+                alert('Could not save item. Please set a default quantity.');
                 console.error(err);
             }
         });
