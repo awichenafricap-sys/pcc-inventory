@@ -13,6 +13,63 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     @if(session('success'))<div class="mb-4 text-green-600">{{ session('success') }}</div>@endif
 
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-3">Production Capacity (from current item stock)</h3>
+                        @if($products->count())
+                            <table class="min-w-full divide-y divide-gray-200 mb-4">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Possible</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Breakdown (Before → After at Max)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($products as $product)
+                                        @php
+                                            $recipeItems = $product->items;
+                                            if ($recipeItems->isEmpty()) {
+                                                $maxPossible = null;
+                                            } else {
+                                                $maxPossible = $recipeItems
+                                                    ->map(fn ($item) => intdiv((int) $item->stock, max(1, (int) $item->pivot->quantity_required)))
+                                                    ->min();
+                                            }
+                                        @endphp
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ $product->name }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap font-semibold">
+                                                {{ is_null($maxPossible) ? 'No recipe' : $maxPossible }}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                @if($recipeItems->isEmpty())
+                                                    <span class="text-gray-400">No ingredients configured</span>
+                                                @else
+                                                    <div class="space-y-1 text-sm">
+                                                        @foreach($recipeItems as $recipeItem)
+                                                            @php
+                                                                $before = (int) $recipeItem->stock;
+                                                                $neededPerUnit = max(1, (int) $recipeItem->pivot->quantity_required);
+                                                                $after = $before - ($neededPerUnit * ($maxPossible ?? 0));
+                                                            @endphp
+                                                            <div>
+                                                                <span class="font-medium">{{ $recipeItem->name }}</span>
+                                                                <span class="text-gray-600">({{ $neededPerUnit }}/unit)</span>
+                                                                : {{ $before }} → {{ $after }}
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <div class="text-gray-400 mb-4">No products found. Create product recipes first.</div>
+                        @endif
+                    </div>
+
                     @if($produce->count())
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
