@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Flatpickr date picker customizations */
+.date-picker {
+    text-align: center;
+    min-width: 220px;
+    width: 100%;
+}
+
+/* Make the calendar dropdown days abbreviated - handled by Flatpickr locale */
+.flatpickr-weekdays {
+    width: 100%;
+}
+
+.flatpickr-day {
+    max-width: none;
+}
