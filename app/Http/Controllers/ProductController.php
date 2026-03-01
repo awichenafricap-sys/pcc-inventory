@@ -30,33 +30,45 @@ class ProductController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'code' => 'required|unique:products,code',
+        'name' => 'required',
+        'category' => 'required',
+        'unit' => 'required',
+        'current_stock' => 'required|integer|min:0',
+        'reorder_level' => 'required|integer|min:0',
+    ]);
 
-        Product::create($data);
+    Product::create($request->all());
 
-        return redirect()->route('products.index')->with('success','Product created.');
-    }
+    return redirect()
+        ->route('products.index')
+        ->with('success', 'Product added successfully.');
+}
 
     public function edit(Product $product)
     {
         return view('products.edit', compact('product'));
     }
 
-    public function update(Request $request, Product $product)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+   public function update(Request $request, Product $product)
+{
+    $request->validate([
+        'code' => 'required|unique:products,code,' . $product->id,
+        'name' => 'required',
+        'category' => 'required',
+        'unit' => 'required',
+        'current_stock' => 'required|integer|min:0',
+        'reorder_level' => 'required|integer|min:0',
+    ]);
 
-        $product->update($data);
+    $product->update($request->all());
 
-        return redirect()->route('products.index')->with('success','Product updated.');
-    }
+    return redirect()
+        ->route('products.index')
+        ->with('success', 'Product updated successfully.');
+}
 
     public function destroy(Product $product)
     {
