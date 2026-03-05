@@ -6,6 +6,10 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Exports\ProductsExport;
+use App\Imports\ProductsImport;
+use App\Exports\ProductsPdfExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -20,11 +24,31 @@ class ProductController extends Controller
         });
     }
 
-    public function index()
+     public function index(Request $request)
     {
-        $products = Product::latest()->paginate(15);
+        $query = Product::query();
+
+        // Search filter
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('code', 'like', '%' . $search . '%')
+                  ->orWhere('name', 'like', '%' . $search . '%')
+                  ->orWhere('category', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Category filter
+        if ($request->has('category') && $request->category != '') {
+            $query->where('category', $request->category);
+        }
+
+        $products = $query->paginate(10)->withQueryString();
+
         return view('products.index', compact('products'));
     }
+
 
     public function create()
     {
@@ -185,5 +209,128 @@ class ProductController extends Controller
             
             return response()->json(['success' => false, 'message' => 'Error removing image.'], 500);
         }
+    }
+
+     /* Export products to Excel
+     */
+    public function exportExcel(Request $request)
+    {
+        $filters = [
+            'search' => $request->search,
+            'category' => $request->category
+        ];
+
+        return Excel::download(new ProductsExport($filters), 'products-' . now()->format('Y-m-d') . '.xlsx');
+    }
+
+    /**
+     * Export products to CSV
+     */
+    public function exportCsv(Request $request)
+    {
+        $filters = [
+            'search' => $request->search,
+            'category' => $request->category
+        ];
+
+        return Excel::download(new ProductsExport($filters), 'products-' . now()->format('Y-m-d') . '.csv');
+    }
+
+    /**
+     * Export products to PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        $filters = [
+            'search' => $request->search,
+            'category' => $request->category
+        ];
+
+        $pdfExport = new ProductsPdfExport($filters);
+        return $pdfExport->download();
+    }
+
+    /**
+     * Import products from Excel/CSV
+     */
+    /**
+ * Import products from Excel/CSV
+ */
+public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv|max:5120' // Max 5MB
+    ]);
+
+    try {
+        $import = new ProductsImport();
+        Excel::import($import, $request->file('file'));
+        
+        // Get counts from import class
+        $successCount = $import->getSuccessCount();
+        $totalRows = $import->getRowCount();
+        
+        if ($successCount > 0) {
+            return redirect()->route('products.index')
+                ->with('success', "Successfully imported {$successCount} out of {$totalRows} products!");
+        } else {
+            return redirect()->route('products.index')
+                ->with('error', 'No products were imported. Please check your file format.');
+        }
+        
+    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        $failures = $e->failures();
+        $errorMessages = [];
+        foreach ($failures as $failure) {
+            $errorMessages[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
+        }
+        
+        Log::error('Import validation failed: ' . implode(' | ', $errorMessages));
+        
+        return redirect()->route('products.index')
+            ->with('error', 'Import validation failed: ' . implode(' | ', array_slice($errorMessages, 0, 3)));
+            
+    } catch (\Exception $e) {
+        Log::error('Import error: ' . $e->getMessage());
+        
+        return redirect()->route('products.index')
+            ->with('error', 'Error importing products: ' . $e->getMessage());
+    }
+}
+
+    /**
+     * Download sample import template
+     */
+    public function downloadTemplate()
+    {
+        $headers = [
+            'code', 'name', 'category', 'unit', 'current_stock', 'reorder_level', 'description'
+        ];
+
+        $sampleData = [
+            ['P-001', 'Sample Product', 'Solid', 'Pieces', 100, 10, 'Sample description'],
+            ['', 'Another Product', 'Liquid', 'Liters', 50, 5, 'Optional description']
+        ];
+
+        return Excel::download(new class($headers, $sampleData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            protected $headers;
+            protected $data;
+
+            public function __construct($headers, $data)
+            {
+                $this->headers = $headers;
+                $this->data = $data;
+            }
+
+            public function array(): array
+            {
+                return $this->data;
+            }
+
+            public function headings(): array
+            {
+                return $this->headers;
+            }
+        }, 'import-template.xlsx');
     }
 }

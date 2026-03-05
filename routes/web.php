@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProductController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,6 +24,17 @@ Route::middleware('auth')->group(function () {
     Route::resource('produce', App\Http\Controllers\ProduceController::class)->only(['index','create','store','edit','update','destroy']);
     Route::resource('units', App\Http\Controllers\UnitController::class)->only(['index','create','store','edit','update','destroy']);
     Route::resource('restock', App\Http\Controllers\RestockController::class)->only(['index','create','store','edit','update','destroy']);
+
+     // Export routes
+    Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
+    Route::get('/products/export/csv', [ProductController::class, 'exportCsv'])->name('products.export.csv');
+    Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
+    
+    // Import routes
+    Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
+    Route::get('/products/import/template', [ProductController::class, 'downloadTemplate'])->name('products.import.template');
+    
 });
+
 
 require __DIR__.'/auth.php';
