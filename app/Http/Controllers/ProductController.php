@@ -62,14 +62,22 @@ class ProductController extends Controller
             'name' => 'required|max:255',
             'category' => 'required|max:100',
             'unit' => 'required|max:50',
+            'beginning' => 'nullable|integer|min:0',
             'current_stock' => 'required|integer|min:0',
             'reorder_level' => 'required|integer|min:0',
+            'cost' => 'nullable|numeric|min:0',
+            'ending' => 'nullable|integer|min:0',
             'description' => 'nullable|string|max:500',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max - mas practical
         ]);
         
         try {
             $data = $request->except('image');
+            
+            // Calculate ending automatically: reorder_level - current_stock
+            $reorderLevel = $request->reorder_level ?? 0;
+            $currentStock = $request->current_stock ?? 0;
+            $data['ending'] = $reorderLevel - $currentStock;
             
             // Handle image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
@@ -117,14 +125,22 @@ class ProductController extends Controller
             'name' => 'required|max:255',
             'category' => 'required|max:100',
             'unit' => 'required|max:50',
+            'beginning' => 'nullable|integer|min:0',
             'current_stock' => 'required|integer|min:0',
             'reorder_level' => 'required|integer|min:0',
+            'cost' => 'nullable|numeric|min:0',
+            'ending' => 'nullable|integer|min:0',
             'description' => 'nullable|string|max:500',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
         ]);
 
         try {
             $data = $request->except('image');
+            
+            // Calculate ending automatically: reorder_level - current_stock
+            $reorderLevel = $request->reorder_level ?? 0;
+            $currentStock = $request->current_stock ?? 0;
+            $data['ending'] = $reorderLevel - $currentStock;
             
             // Handle image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {

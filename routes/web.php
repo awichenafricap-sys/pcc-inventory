@@ -33,7 +33,6 @@ Route::middleware('auth')->group(function () {
     // Import routes
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('/products/import/template', [ProductController::class, 'downloadTemplate'])->name('products.import.template');
-    
 });
 
 

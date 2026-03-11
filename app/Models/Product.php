@@ -14,8 +14,11 @@ class Product extends Model
     'name',
     'category',
     'unit',
+    'beginning',
     'current_stock',
     'reorder_level',
+    'cost',
+    'ending',
     'description',
     'image'
 ];

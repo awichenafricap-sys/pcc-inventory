@@ -4,6 +4,9 @@
         <!-- Add this in your <head> section or layout -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     </x-slot>
+
+    <!-- Include external JavaScript -->
+    <script src="{{ asset('js/products.js') }}"></script>
     
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -99,7 +102,7 @@
                             </svg>
                         </button>
                     </div>
-
+                        {{-- CREATE --}}
                     <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data"
                         class="space-y-2">
                         @csrf
@@ -122,20 +125,35 @@
                             <div>
                                 <label
                                     class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
-                                <input type="text" name="category" value="{{ old('category') }}"
+                                <select name="category" value="{{ old('category') }}"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    placeholder="Dairy" required>
+                                    required>
+                                    <option value="">Select Category</option>
+                                    <option value="Frozen" {{ old('category') == 'Frozen' ? 'selected' : '' }}>Frozen</option>
+                                    <option value="Liquid" {{ old('category') == 'Liquid' ? 'selected' : '' }}>Liquid</option>
+                                    <option value="Solid" {{ old('category') == 'Solid' ? 'selected' : '' }}>Solid</option>
+                                    <option value="Pastries" {{ old('category') == 'Pastries' ? 'selected' : '' }}>Pastries</option>
+                                    <option value="Meat" {{ old('category') == 'Meat' ? 'selected' : '' }}>Meat</option>
+                                    <option value="Others" {{ old('category') == 'Others' ? 'selected' : '' }}>Others</option>
+                                </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit</label>
                                 <input type="text" name="unit" value="{{ old('unit') }}"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    placeholder="Pieces" required>
+                                    placeholder="Pieces, Kilos, Liters, etc." required>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-4 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Beginning</label>
+                                <input type="number" name="beginning" value="{{ old('beginning', 0) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    min="0" value="0">
+                            </div>
+
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Current
                                     Stock</label>
@@ -152,9 +170,15 @@
                                     min="0" required>
                             </div>
 
-                            <div class="col-span-2">
-                                <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cost</label>
+                                <input type="number" name="cost" value="{{ old('cost') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    step="0.01" min="0" placeholder="0.00">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
                                 <input type="text" name="description" value="{{ old('description') }}"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
                                     placeholder="Optional description">
@@ -195,7 +219,6 @@
                 </div>
             </div>
             <!-- Success Message -->
-            <!-- Success Message -->
             @if (session('success'))
                 <div id="successMessage"
                     class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-lg flex items-center"
@@ -207,20 +230,6 @@
                     </svg>
                     <span class="font-medium">{{ session('success') }}</span>
                 </div>
-
-                <script>
-                    // Auto-hide success message after 3 seconds
-                    setTimeout(function() {
-                        const successMessage = document.getElementById('successMessage');
-                        if (successMessage) {
-                            successMessage.style.transition = 'opacity 0.5s ease';
-                            successMessage.style.opacity = '0';
-                            setTimeout(function() {
-                                successMessage.style.display = 'none';
-                            }, 500);
-                        }
-                    }, 3000); // 3000 milliseconds = 3 seconds
-                </script>
             @endif
 
             <!-- After your existing success message section, add this -->
@@ -233,19 +242,6 @@
         </svg>
         <span class="font-medium">{{ session('error') }}</span>
     </div>
-
-    <script>
-        setTimeout(function() {
-            const errorMessage = document.getElementById('errorMessage');
-            if (errorMessage) {
-                errorMessage.style.transition = 'opacity 0.5s ease';
-                errorMessage.style.opacity = '0';
-                setTimeout(function() {
-                    errorMessage.style.display = 'none';
-                }, 500);
-            }
-        }, 5000);
-    </script>
 @endif
 
             <!-- Products Section with Filters -->
@@ -295,24 +291,40 @@
         </form>
     </div>
 
-    <!-- Category Filter Buttons -->
-    <div class="flex gap-2 flex-wrap">
-        <a href="{{ route('products.index', array_merge(request()->except('category'), ['category' => ''])) }}" 
-           class="px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out {{ !request('category') ? 'bg-[#5839a3] text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }}">
-            All
-        </a>
-        <a href="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Solid'])) }}" 
-           class="px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out {{ request('category') == 'Solid' ? 'bg-[#5839a3] text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }}">
-            Solid
-        </a>
-        <a href="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Liquid'])) }}" 
-           class="px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out {{ request('category') == 'Liquid' ? 'bg-[#5839a3] text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }}">
-            Liquid
-        </a>
-        <a href="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Yogurt'])) }}" 
-           class="px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out {{ request('category') == 'Yogurt' ? 'bg-[#5839a3] text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }}">
-            Yogurt
-        </a>
+    <!-- Category Filter Dropdown -->
+    <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-600 dark:text-gray-400">Category:</label>
+        <select onchange="window.location.href=this.value" 
+                class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#5839a3] focus:ring-[#5839a3]">
+            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => ''])) }}" 
+                    {{ !request('category') ? 'selected' : '' }}>
+                All Categories
+            </option>
+            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Frozen'])) }}" 
+                    {{ request('category') == 'Frozen' ? 'selected' : '' }}>
+                Frozen
+            </option>
+            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Liquid'])) }}" 
+                    {{ request('category') == 'Liquid' ? 'selected' : '' }}>
+                Liquid
+            </option>
+            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Solid'])) }}" 
+                    {{ request('category') == 'Solid' ? 'selected' : '' }}>
+                Solid
+            </option>
+            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Pastries'])) }}" 
+                    {{ request('category') == 'Pastries' ? 'selected' : '' }}>
+                Pastries
+            </option>
+            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Meat'])) }}" 
+                    {{ request('category') == 'Meat' ? 'selected' : '' }}>
+                Meat
+            </option>
+            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Others'])) }}" 
+                    {{ request('category') == 'Others' ? 'selected' : '' }}>
+                Others
+            </option>
+        </select>
     </div>
 
     <!-- Results count and Clear All button -->
@@ -335,11 +347,14 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Image</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Beginning</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Stock</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reorder</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cost</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ending</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -369,6 +384,25 @@
                                     {{ $product->name }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $product->unit }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $product->beginning ?? 0 }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $product->current_stock }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $product->reorder_level ?? 0 }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    @if(isset($product->cost))
+                                        ₱{{ number_format($product->cost, 2) }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                     <span class="px-2 py-1 rounded-full text-xs font-medium
                                         @if($product->category == 'Solid') bg-blue-100 text-blue-800
                                         @elseif($product->category == 'Liquid') bg-green-100 text-green-800
@@ -377,21 +411,12 @@
                                         {{ $product->category }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->unit }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->current_stock }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->reorder_level }}
-                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if ($product->current_stock == 0)
                                         <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-800 text-white">
                                             Out of Stock
                                         </span>
-                                    @elseif($product->current_stock <= $product->reorder_level)
+                                    @elseif($product->current_stock <= ($product->reorder_level ?? 0))
                                         <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500 text-white">
                                             Low Stock
                                         </span>
@@ -400,6 +425,9 @@
                                             In Stock
                                         </span>
                                     @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $product->ending ?? ($product->reorder_level - $product->current_stock) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                     <!-- Edit button -->
@@ -412,7 +440,11 @@
                                         '{{ $product->current_stock }}',
                                         '{{ $product->reorder_level }}',
                                         '{{ $product->image }}',
-                                        '{{ addslashes($product->description) }}'
+                                        '{{ addslashes($product->description) }}',
+                                        '{{ $product->beginning ?? 0 }}',
+                                        '{{ $product->cost ?? 0 }}',
+                                        '{{ $product->credit ?? 0 }}',
+                                        '{{ addslashes($product->other ?? '') }}'
                                     )" class="inline-flex items-center px-3 py-1.5 text-white text-sm font-medium rounded-lg transition duration-150 ease-in-out"
                                         style="background-color: #5839a3;">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -534,9 +566,17 @@
 
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 500;">Category</label>
-                        <input type="text" id="simple_category" name="category"
+                        <select id="simple_category" name="category"
                             style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
                             required>
+                            <option value="">Select Category</option>
+                            <option value="Frozen">Frozen</option>
+                            <option value="Liquid">Liquid</option>
+                            <option value="Solid">Solid</option>
+                            <option value="Pastries">Pastries</option>
+                            <option value="Meat">Meat</option>
+                            <option value="Others">Others</option>
+                        </select>
                     </div>
 
                     <div style="margin-bottom: 15px;">
@@ -558,6 +598,21 @@
                             <input type="number" id="simple_reorder" name="reorder_level"
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
                                 min="0" required>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Beginning</label>
+                            <input type="number" id="simple_beginning" name="beginning"
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
+                                min="0" value="0">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cost</label>
+                            <input type="number" id="simple_cost" name="cost"
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
+                                step="0.01" min="0" placeholder="0.00">
                         </div>
                     </div>
 
@@ -657,206 +712,14 @@
         </div>
     </div>
 </div>
-    <script>
-      // Toggle create form
-function toggleCreateForm() {
-    const form = document.getElementById('createFormContainer');
-    const btn = document.getElementById('showCreateBtn');
+</x-app-layout>
 
-    if (form.style.display === 'none') {
-        form.style.display = 'block';
-        btn.style.display = 'none';
-    } else {
-        form.style.display = 'none';
-        btn.style.display = 'flex';
-    }
-}
-
-// Image Preview for Create Form
-document.getElementById('create_image_input')?.addEventListener('change', function(e) {
-    const preview = document.getElementById('create_image_preview');
-    const file = e.target.files[0];
-    
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
-    } else {
-        preview.style.display = 'none';
-    }
-});
-
-// Show edit modal with image
-function showEditModal(id, code, name, category, unit, stock, reorder, imagePath, description) {
-    // Set form action
-    document.getElementById('simpleEditForm').action = '/products/' + id;
-    
-    // Set form fields
-    document.getElementById('simple_code').value = code;
-    document.getElementById('simple_name').value = name;
-    document.getElementById('simple_category').value = category;
-    document.getElementById('simple_unit').value = unit;
-    document.getElementById('simple_stock').value = stock;
-    document.getElementById('simple_reorder').value = reorder;
-    
-    // Set description if available
-    const descField = document.getElementById('simple_description');
-    if (descField) {
-        descField.value = description || '';
-    }
-    
-    // Set current image
-    const currentImage = document.getElementById('current_image_preview');
-    if (imagePath && imagePath !== '') {
-        // Check if imagePath already contains 'storage/'
-        if (imagePath.includes('storage/')) {
-            currentImage.src = '{{ asset('') }}' + imagePath;
-        } else {
-            currentImage.src = '{{ asset('storage') }}/' + imagePath;
-        }
-    } else {
-        currentImage.src = '{{ asset('images/no-image.png') }}';
-    }
-    
-    // Reset file input and preview
-    document.getElementById('edit_image_input').value = '';
-    document.getElementById('edit_image_preview').style.display = 'none';
-    
-    // Show modal - prevent body scrolling
-    document.getElementById('simpleEditModal').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-// Image Preview for Edit Form
-document.getElementById('edit_image_input')?.addEventListener('change', function(e) {
-    const preview = document.getElementById('edit_image_preview');
-    const file = e.target.files[0];
-    
-    if (file) {
-        // Validate file size (5MB limit)
-        const fileSizeInMB = file.size / (1024 * 1024);
-        if (fileSizeInMB > 5) {
-            alert('File size exceeds 5MB. Please choose a smaller file.');
-            this.value = '';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
-    } else {
-        preview.style.display = 'none';
-    }
-});
-
-// Hide edit modal
-function hideSimpleModal() {
-    document.getElementById('simpleEditModal').style.display = 'none';
-    document.body.style.overflow = 'auto'; // Restore body scrolling
-}
-
-// Click outside to close edit modal
-window.onclick = function(event) {
-    const modal = document.getElementById('simpleEditModal');
-    if (event.target == modal) {
-        hideSimpleModal();
-    }
-}
-
-// Auto-hide create form if there are validation errors
+<!-- Handle validation errors - show create form if there are errors -->
 @if ($errors->any())
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('createFormContainer').style.display = 'block';
         document.getElementById('showCreateBtn').style.display = 'none';
     });
+</script>
 @endif
-
-// SweetAlert Delete Confirmation
-function confirmDelete(productId) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel',
-        reverseButtons: true,
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById('delete-form-' + productId).submit();
-        }
-    });
-}
-
-// Image Preview Modal Functions
-function showImagePreview(imageUrl, productName) {
-    document.getElementById('previewModalImage').src = imageUrl;
-    document.getElementById('previewModalTitle').textContent = productName + ' - Image';
-    document.getElementById('downloadImageBtn').href = imageUrl;
-    document.getElementById('imagePreviewModal').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-function hideImagePreview() {
-    document.getElementById('imagePreviewModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-// Close preview modal when clicking outside
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('imagePreviewModal');
-    if (event.target == modal) {
-        hideImagePreview();
-    }
-});
-
-// Close with ESC key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        hideImagePreview();
-        hideSimpleModal();
-    }
-});
-
-// Clear search function
-function clearSearch() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('searchForm').submit();
-}
-
-// Optional: Allow Enter key to submit form (mas ok pa rin ito)
-document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        document.getElementById('searchForm').submit();
-    }
-});
-
-// Import Modal Functions
-function showImportModal() {
-    document.getElementById('importModal').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-function hideImportModal() {
-    document.getElementById('importModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-// Close import modal when clicking outside
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('importModal');
-    if (event.target == modal) {
-        hideImportModal();
-    }
-});
-    </script>
-</x-app-layout>
