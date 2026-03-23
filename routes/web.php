@@ -3,7 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-
+use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\CategoryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -33,7 +34,11 @@ Route::middleware('auth')->group(function () {
     // Import routes
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('/products/import/template', [ProductController::class, 'downloadTemplate'])->name('products.import.template');
+
+    Route::resource('ingredients', IngredientController::class);
+Route::resource('categories', CategoryController::class);
 });
+
 
 
 require __DIR__.'/auth.php';

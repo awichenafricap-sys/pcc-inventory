@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         // Call other seeders
         $this->call([
-            // Add other seeders here
+            IngredientSeeder::class,
         ]);
 
         // Your existing user seeders

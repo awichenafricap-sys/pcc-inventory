@@ -71,58 +71,49 @@
                         </div>
                     </form>
 
-                    @if($items->count())
-                        <table id="items-table" class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    @if($ingredients->count())
+                        <table id="items-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-900">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost/Unit</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Default</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                                    <th class="px-6 py-3"></th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost/Unit</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Minimum Stock</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Current Stock</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($items as $item)
-                                    <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                @if($item->image)
-                                                    <img src="{{ asset('storage/' . $item->image) }}" alt="image" class="h-12 w-12 object-cover rounded">
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ $item->name }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ $item->unit?->name ?? '-' }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ number_format($item->cost_per_unit,2) }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ $item->default_quantity ?? 0 }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ $item->stock }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <a href="{{ route('items.edit', $item) }}" class="text-primary-600 me-2">Edit</a>
-                                                <form action="{{ route('items.destroy', $item) }}" method="POST" class="inline">@csrf @method('DELETE')<button class="text-red-600" onclick="return confirm('Delete item?')">Delete</button></form>
-                                            </td>
-                                        </tr>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach($ingredients as $ingredient)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $ingredient->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $ingredient->unit_of_measurement }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">₱{{ number_format($ingredient->cost_per_unit, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $ingredient->minimum_stock }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="text-sm font-semibold @if($ingredient->status === 'in_stock') text-green-600 dark:text-green-400 @elseif($ingredient->status === 'low_stock') text-yellow-600 dark:text-yellow-400 @else text-red-600 dark:text-red-400 @endif">
+                                                {{ $ingredient->current_stock }}
+                                            </span>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
-                        <div class="mt-4">{{ $items->links() }}</div>
+                        <div class="mt-4">{{ $ingredients->links() }}</div>
                     @else
-                        <table id="items-table" class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table id="items-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-900">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost/Unit</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Default</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                                    <th class="px-6 py-3"></th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost/Unit</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Minimum Stock</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Current Stock</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             </tbody>
                         </table>
-                        <div id="no-items-msg" class="text-center text-gray-400 p-6">No items yet. Click <a href="javascript:void(0);" onclick="document.getElementById('inline-add-form').classList.toggle('hidden');" class="text-primary-600">New Item</a> to get started.</div>
+                        <div id="no-items-msg" class="text-center text-gray-400 dark:text-gray-500 p-6">No ingredients found.</div>
                     @endif
                 </div>
             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Unit;
+use App\Models\Ingredient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,9 +23,9 @@ class ItemController extends Controller
 
     public function index()
     {
-        $items = Item::with('unit')->paginate(15);
+        $ingredients = Ingredient::with('category')->orderBy('name')->paginate(15);
         $units = Unit::all();
-        return view('items.index', compact('items','units'));
+        return view('items.index', compact('ingredients','units'));
     }
 
     public function create()

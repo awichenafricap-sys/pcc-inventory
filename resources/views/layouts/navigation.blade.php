@@ -35,6 +35,10 @@
                     <x-nav-link :href="route('units.index')" :active="request()->routeIs('units.*')">
                         {{ __('Units') }}
                     </x-nav-link>
+                    
+                    <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*') || request()->routeIs('ingredients.*')">
+                        {{ __('Categories') }}
+                    </x-nav-link>
                 </div>
 
                 <!-- Date Picker (centered) -->
