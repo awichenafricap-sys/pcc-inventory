@@ -16,18 +16,16 @@
                                 Categories
                             </a>
                         </li>
-                        @if($ingredient->category)
                         <li>
                             <div class="flex items-center">
                                 <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                                 </svg>
-                                <a href="{{ route('categories.show', $ingredient->category->id) }}" class="ml-1 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white md:ml-2">
-                                    {{ $ingredient->category->name }}
+                                <a href="{{ route('categories.show', $ingredient->category_id) }}" class="ml-1 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white md:ml-2">
+                                    {{ $ingredient->category->name ?? 'Category' }}
                                 </a>
                             </div>
                         </li>
-                        @endif
                         <li aria-current="page">
                             <div class="flex items-center">
                                 <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">

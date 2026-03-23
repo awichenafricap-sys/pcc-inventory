@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Ingredient;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -10,10 +11,40 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $categories = Category::withCount('ingredients')->orderBy('name')->get();
-        return view('categories.index', compact('categories'));
+        
+        $ingredientsQuery = Ingredient::with('category');
+        
+        // Filter by status (low_stock, near_expiry)
+        if ($request->filled('filter')) {
+            if ($request->filter === 'low_stock') {
+                $ingredientsQuery->whereRaw('current_stock <= minimum_stock');
+            } elseif ($request->filter === 'near_expiry') {
+                $ingredientsQuery->where('expiry_date', '>=', now())
+                                 ->where('expiry_date', '<=', now()->addDays(7));
+            }
+        }
+        
+        // Search by name and unit
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $ingredientsQuery->where(function($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('unit_of_measurement', 'like', '%' . $search . '%');
+            });
+        }
+        
+        $ingredients = $ingredientsQuery->orderBy('name')->get();
+        
+        // Calculate counts based on all ingredients (not filtered)
+        $allIngredients = Ingredient::all();
+        $totalIngredientsCount = $allIngredients->count();
+        $lowStockCount = $allIngredients->where('status', 'low_stock')->count();
+        $nearExpiryCount = $allIngredients->where('expiry_date', '>=', now())->where('expiry_date', '<=', now()->addDays(7))->count();
+        
+        return view('categories.index', compact('categories', 'ingredients', 'totalIngredientsCount', 'lowStockCount', 'nearExpiryCount'));
     }
 
     /**

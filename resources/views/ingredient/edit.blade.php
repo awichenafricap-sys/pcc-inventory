@@ -16,25 +16,13 @@
                                 Categories
                             </a>
                         </li>
-                        @if($ingredient->category)
                         <li>
                             <div class="flex items-center">
                                 <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                                 </svg>
-                                <a href="{{ route('categories.show', $ingredient->category->id) }}" class="ml-1 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white md:ml-2">
-                                    {{ $ingredient->category->name }}
-                                </a>
-                            </div>
-                        </li>
-                        @endif
-                        <li>
-                            <div class="flex items-center">
-                                <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                                </svg>
-                                <a href="{{ route('ingredients.show', $ingredient->id) }}" class="ml-1 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white md:ml-2">
-                                    {{ $ingredient->name }}
+                                <a href="{{ route('categories.show', $ingredient->category_id) }}" class="ml-1 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white md:ml-2">
+                                    {{ $ingredient->category->name ?? 'Category' }}
                                 </a>
                             </div>
                         </li>
@@ -170,17 +158,10 @@
 
                         <!-- Actions -->
                         <div class="mt-8 flex justify-end space-x-3">
-                            @if($ingredient->category)
-                                <a href="{{ route('categories.show', $ingredient->category->id) }}" 
-                                   class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                                    Cancel
-                                </a>
-                            @else
-                                <a href="{{ route('categories.index') }}" 
-                                   class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                                    Cancel
-                                </a>
-                            @endif
+                            <a href="{{ route('categories.show', $ingredient->category_id) }}" 
+                               class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                Cancel
+                            </a>
                             <button type="submit" 
                                     class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                                 Update Ingredient

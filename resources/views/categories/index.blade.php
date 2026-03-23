@@ -5,6 +5,34 @@
         </h2>
     </x-slot>
 
+    <!-- Flash Messages -->
+    @if(session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            });
+        </script>
+    @endif
+    @if(session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: '{{ session('error') }}',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
+            });
+        </script>
+    @endif
+
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Breadcrumb -->
@@ -18,10 +46,11 @@
                 </nav>
             </div>
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Total Categories -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-5">
                     <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-blue-100 dark:bg-blue-900 rounded-md p-3">
+                        <div class="flex-shrink-0 bg-blue-100 dark:bg-blue-900 rounded-lg p-3">
                             <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
@@ -33,48 +62,329 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <a href="{{ route('ingredients.index') }}" class="block hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-green-100 dark:bg-green-900 rounded-md p-3">
-                                <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                                </svg>
+                <!-- Total Ingredients -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-green-100 dark:bg-green-900 rounded-lg p-3">
+                            <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Ingredients</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $totalIngredientsCount }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock -->
+                <a href="{{ route('categories.index', ['filter' => 'low_stock']) }}" 
+                   class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-5 block hover:ring-2 hover:ring-yellow-400 transition-all {{ request('filter') == 'low_stock' ? 'ring-2 ring-yellow-400' : '' }}">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-yellow-100 dark:bg-yellow-900 rounded-lg p-3">
+                            <svg class="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Low Stock</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $lowStockCount }}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Near Expiry -->
+                <a href="{{ route('categories.index', ['filter' => 'near_expiry']) }}" 
+                   class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-5 block hover:ring-2 hover:ring-red-400 transition-all {{ request('filter') == 'near_expiry' ? 'ring-2 ring-red-400' : '' }}">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-red-100 dark:bg-red-900 rounded-lg p-3">
+                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Near Expiry</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $nearExpiryCount }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- ADD INGREDIENT FORM - Hidden by default -->
+            <div id="ingredientFormContainer" style="display: none;" class="mb-4">
+                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                    @if ($errors->any())
+                        <div class="mb-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
+                            <ul class="list-disc list-inside text-sm">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-md font-bold text-gray-800 dark:text-gray-200">Add New Ingredient</h3>
+                        <button onclick="toggleIngredientForm()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <form method="POST" action="{{ route('ingredients.store') }}">
+                        @csrf
+                        <div class="grid grid-cols-4 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                <input type="text" name="name" value="{{ old('name') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    placeholder="Ingredient name" required>
                             </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Ingredients</p>
-                                <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $categories->sum('ingredients_count') }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Click to view all ingredients</p>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">SKU</label>
+                                <input type="text" name="sku" value="{{ old('sku') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    placeholder="SKU" required>
                             </div>
-                            <div class="ml-auto">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
+                                <select name="category_id" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    required>
+                                    <option value="">Select</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit</label>
+                                <input type="text" name="unit_of_measurement" value="{{ old('unit_of_measurement') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    placeholder="kg, liters, pcs" required>
                             </div>
                         </div>
-                    </a>
+                        <div class="grid grid-cols-4 gap-2 mt-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Current Stock</label>
+                                <input type="number" name="current_stock" value="{{ old('current_stock', 0) }}"
+                                    step="0.01"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Min Stock</label>
+                                <input type="number" name="minimum_stock" value="{{ old('minimum_stock', 0) }}"
+                                    step="0.01"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cost/Unit</label>
+                                <input type="number" name="cost_per_unit" value="{{ old('cost_per_unit') }}"
+                                    step="0.01"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Expiry Date</label>
+                                <input type="date" name="expiry_date" value="{{ old('expiry_date') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 mt-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Supplier</label>
+                                <input type="text" name="supplier" value="{{ old('supplier') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    placeholder="Supplier name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                <input type="text" name="location" value="{{ old('location') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    placeholder="Storage location">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <input type="text" name="description" value="{{ old('description') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    placeholder="Optional description">
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-2 pt-3">
+                            <button type="button" onclick="toggleIngredientForm()"
+                                class="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition duration-150 ease-in-out">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition duration-150 ease-in-out">
+                                Save
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-3 mb-6">
-                @if($categories->count() > 0)
-                <button type="button" 
-                   onclick="openCategorySummaryModal()"
-                   class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    View Categories ({{ $categories->count() }})
-                </button>
-                @else
-                <a href="{{ route('categories.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Add Category
-                </a>
-                @endif
+            <!-- Ingredients Table -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <!-- Search and Actions Row -->
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Ingredients List</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" 
+                               onclick="toggleIngredientForm()"
+                               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add Ingredient
+                            </button>
+                            @if($categories->count() > 0)
+                            <button type="button" 
+                               onclick="openCategorySummaryModal()"
+                               class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-sm">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                View Categories ({{ $categories->count() }})
+                            </button>
+                            @else
+                            <a href="{{ route('categories.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-sm">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add Category
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                    <!-- Search Bar -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <form method="GET" action="{{ route('categories.index') }}" class="flex gap-2 w-full sm:w-auto flex-wrap items-center">
+                            @if(request('filter') == 'low_stock')
+                            <input type="hidden" name="filter" value="low_stock">
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded-full text-sm font-medium flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                Low Stock Filter
+                                <a href="{{ route('categories.index') }}" class="ml-1 hover:text-yellow-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </a>
+                            </span>
+                            @elseif(request('filter') == 'near_expiry')
+                            <input type="hidden" name="filter" value="near_expiry">
+                            <span class="px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full text-sm font-medium flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Near Expiry Filter
+                                <a href="{{ route('categories.index') }}" class="ml-1 hover:text-red-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </a>
+                            </span>
+                            @endif
+                            <div class="relative flex-1 sm:w-80">
+                                <input type="text" 
+                                       name="search" 
+                                       id="searchInput"
+                                       value="{{ request('search') }}"
+                                       placeholder="Search by Name or Unit " 
+                                       class="w-full pl-10 pr-24 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                <div class="absolute left-3 top-2.5 text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <button type="submit" 
+                                        class="absolute right-1 top-1 px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition duration-150 ease-in-out">
+                                    Search
+                                </button>
+                            </div>
+                            @if(request('search') || request('filter'))
+                            <a href="{{ route('categories.index') }}" 
+                               class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition duration-150 ease-in-out text-sm">
+                                Clear All
+                            </a>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    @if($ingredients->count() > 0)
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-900">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">SKU</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expiry Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach($ingredients as $ingredient)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $ingredient->name }}</div>
+                                        @if($ingredient->description)
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ Str::limit($ingredient->description, 50) }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->sku }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ $ingredient->category->name ?? 'No Category' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($ingredient->status === 'out_of_stock')
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 animate-pulse">
+                                            Out of Stock
+                                        </span>
+                                        @elseif($ingredient->status === 'low_stock')
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                            Low Stock
+                                        </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->current_stock }}</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Min: {{ $ingredient->minimum_stock }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->unit_of_measurement }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        @if($ingredient->expiry_date)
+                                            @if($ingredient->expiry_date <= now())
+                                                <span class="text-red-600 dark:text-red-400 font-medium">{{ $ingredient->expiry_date->format('M d, Y') }}</span>
+                                            @elseif($ingredient->expiry_date <= now()->addDays(7))
+                                                <span class="text-yellow-600 dark:text-yellow-400 font-medium">{{ $ingredient->expiry_date->format('M d, Y') }}</span>
+                                            @else
+                                                <span class="text-gray-900 dark:text-gray-100">{{ $ingredient->expiry_date->format('M d, Y') }}</span>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    @else
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        No ingredients found.
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -137,10 +447,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg>
                                 </a>
-                                <form method="POST" action="{{ route('categories.destroy', $category->id) }}" onsubmit="return confirm('Are you sure you want to delete this category?')" class="inline">
+                                <form id="delete-category-form-{{ $category->id }}" method="POST" action="{{ route('categories.destroy', $category->id) }}" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 inline-flex items-center" title="Delete">
+                                    <button type="button" onclick="confirmDeleteCategory('{{ $category->id }}', '{{ $category->name }}')" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 inline-flex items-center" title="Delete">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -177,11 +487,42 @@
             document.body.style.overflow = 'auto';
         }
         
+        function toggleIngredientForm() {
+            const form = document.getElementById('ingredientFormContainer');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        }
+        
+        function clearSearch() {
+            window.location.href = "{{ route('categories.index') }}";
+        }
+        
         // Close modal on escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeCategorySummaryModal();
+                document.getElementById('ingredientFormContainer').style.display = 'none';
             }
         });
+
+        function confirmDeleteCategory(id, name) {
+            Swal.fire({
+                title: 'Delete Category?',
+                text: 'Are you sure you want to delete "' + name + '"? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-category-form-' + id).submit();
+                }
+            });
+        }
     </script>
 </x-app-layout>

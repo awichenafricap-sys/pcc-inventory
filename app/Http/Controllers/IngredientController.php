@@ -111,7 +111,7 @@ class IngredientController extends Controller
 
         $ingredient->update($validated);
 
-        return redirect()->route('categories.show', $ingredient->category_id)
+        return redirect()->route('categories.show', $validated['category_id'])
                         ->with('success', 'Ingredient updated successfully!');
     }
 
@@ -121,9 +121,10 @@ class IngredientController extends Controller
     public function destroy($id)
     {
         $ingredient = Ingredient::findOrFail($id);
+        $categoryId = $ingredient->category_id;
         $ingredient->delete();
 
-        return redirect()->route('ingredients.index')
+        return redirect()->route('categories.show', $categoryId)
                         ->with('success', 'Ingredient deleted successfully!');
     }
 }
