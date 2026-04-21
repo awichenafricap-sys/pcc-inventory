@@ -9,7 +9,7 @@ class Item extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','unit_id','cost_per_unit','is_default','default_quantity','stock','image'];
+    protected $fillable = ['name','cost_per_unit','is_default','default_quantity','stock','image'];
 
     /**
      * Attribute casting
@@ -21,9 +21,4 @@ class Item extends Model
         'stock' => 'integer',
         'default_quantity' => 'integer',
     ];
-
-    public function unit()
-    {
-        return $this->belongsTo(Unit::class);
-    }
 }

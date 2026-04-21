@@ -9,43 +9,6 @@ use Illuminate\Http\Request;
 class IngredientController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-     public function index() // Feature #1: Listahan
-    {
-        $query = Ingredient::with('category');
-        
-        // Filter by category if specified
-        if (request()->has('category')) {
-            $categoryId = request('category');
-            $query->where('category_id', $categoryId);
-        }
-        
-        $ingredients = $query->orderBy('name')->get();
-        
-        $lowStockCount = Ingredient::whereRaw('current_stock <= minimum_stock')->count();
-        $nearExpiryCount = Ingredient::where('expiry_date', '<=', now()->addDays(7))->count();
-        
-        // Get current category for breadcrumb
-        $currentCategory = null;
-        if (request()->has('category')) {
-            $currentCategory = Category::find(request('category'));
-        }
-        
-        return view('ingredient.index', compact('ingredients', 'lowStockCount', 'nearExpiryCount', 'currentCategory'));
-    }
-    /**
-     * Show the form for creating a new resource.
-     */
-      public function create() // Feature #6: Quick Add
-    {
-        $categories = Category::all();
-        $selectedCategoryId = request('category_id');
-        
-        return view('ingredient.create', compact('categories', 'selectedCategoryId'));
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -55,8 +18,10 @@ class IngredientController extends Controller
             'sku' => 'required|string|unique:ingredients,sku',
             'category_id' => 'required|exists:categories,id',
             'unit_of_measurement' => 'required|string|max:50',
+            'beginning_inventory' => 'nullable|numeric|min:0',
+            'received_quantity' => 'nullable|numeric|min:0',
+            'ending_inventory' => 'nullable|numeric|min:0',
             'current_stock' => 'required|numeric|min:0',
-            'minimum_stock' => 'required|numeric|min:0',
             'cost_per_unit' => 'nullable|numeric|min:0',
             'supplier' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
@@ -76,7 +41,7 @@ class IngredientController extends Controller
       public function show($id) // Feature #3: Detailed View
     {
         $ingredient = Ingredient::with('category')->findOrFail($id);
-        return view('ingredient.show', compact('ingredient'));
+        return view('categories.showIngredients', compact('ingredient'));
     }
     /**
      * Show the form for editing the specified resource.
@@ -85,7 +50,7 @@ class IngredientController extends Controller
     {
         $ingredient = Ingredient::with('category')->findOrFail($id);
         $categories = Category::all();
-        return view('ingredient.edit', compact('ingredient', 'categories'));
+        return view('categories.editIngredients', compact('ingredient', 'categories'));
     }
 
     /**
@@ -100,8 +65,10 @@ class IngredientController extends Controller
             'sku' => 'required|string|unique:ingredients,sku,'.$id,
             'category_id' => 'required|exists:categories,id',
             'unit_of_measurement' => 'required|string|max:50',
+            'beginning_inventory' => 'nullable|numeric|min:0',
+            'received_quantity' => 'nullable|numeric|min:0',
+            'ending_inventory' => 'nullable|numeric|min:0',
             'current_stock' => 'required|numeric|min:0',
-            'minimum_stock' => 'required|numeric|min:0',
             'cost_per_unit' => 'nullable|numeric|min:0',
             'supplier' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
@@ -126,5 +93,31 @@ class IngredientController extends Controller
 
         return redirect()->route('categories.show', $categoryId)
                         ->with('success', 'Ingredient deleted successfully!');
+    }
+
+    /**
+     * Update inventory fields inline.
+     */
+    public function updateInventory(Request $request, Ingredient $ingredient)
+    {
+        $validated = $request->validate([
+            'beginning_inventory' => 'nullable|numeric|min:0',
+            'received_date' => 'nullable|date',
+            'received_quantity' => 'nullable|numeric|min:0',
+            'released_date' => 'nullable|date',
+            'released_quantity' => 'nullable|numeric|min:0',
+            'remarks' => 'nullable|string|max:500',
+        ]);
+
+        $ingredient->fill($validated);
+        // current_stock is auto-calculated by the model: beginning_inventory + received_quantity
+        $ingredient->save();
+
+        // Return JSON for AJAX request
+        return response()->json([
+            'success' => true,
+            'current_stock' => number_format($ingredient->current_stock, 2),
+            'status' => $ingredient->status,
+        ]);
     }
 }

@@ -16,34 +16,76 @@
                         {{ __('Home') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('items.index')" :active="request()->routeIs('items.*')">
-                        {{ __('Items') }}
-                    </x-nav-link>
-
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                         {{ __('Products') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('produce.index')" :active="request()->routeIs('produce.*')">
-                        {{ __('Produce') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('restock.index')" :active="request()->routeIs('restock.*')">
-                    {{ __('Restock') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('units.index')" :active="request()->routeIs('units.*')">
-                        {{ __('Units') }}
-                    </x-nav-link>
-                    
                     <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*') || request()->routeIs('ingredients.*')">
                         {{ __('Categories') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('batch.index')" :active="request()->routeIs('batch.*')">
+                        {{ __('Batch') }}
+                    </x-nav-link>
+
+                    <!-- Supplies Dropdown -->
+                    <x-dropdown align="left" width="48">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                <div>{{ __('Supplies') }}</div>
+                                <div class="ms-1">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('supplies.index')">
+                                {{ __('Supplies') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('supplies.ingredients')">
+                                {{ __('Ingredients') }}
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
                 </div>
 
                 <!-- Date Picker (centered) -->
                 <div class="hidden sm:flex sm:items-center sm:ms-auto sm:me-auto">
-                    <input type="text" id="header-date-picker" class="date-picker px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-primary-500">
+                    <input 
+                        type="date" 
+                        id="header-date-picker" 
+                        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-blue-500"
+                        value="{{ request()->get('date', now()->format('Y-m-d')) }}"
+                    >
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const datePicker = document.getElementById('header-date-picker');
+                            
+                            // Set initial value from URL or today
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const urlDate = urlParams.get('date');
+                            if (urlDate) {
+                                datePicker.value = urlDate;
+                            }
+                            
+                            // On change, update URL parameter and dispatch Livewire event
+                            datePicker.addEventListener('change', function() {
+                                const selectedDate = this.value;
+                                
+                                // Update URL without reload
+                                const newUrl = new URL(window.location);
+                                newUrl.searchParams.set('date', selectedDate);
+                                window.history.pushState({}, '', newUrl);
+                                
+                                // Dispatch Livewire event to refresh content
+                                if (window.Livewire) {
+                                    window.Livewire.dispatch('dateChanged', { date: selectedDate });
+                                }
+                            });
+                        });
+                    </script>
                 </div>
             </div>
 
@@ -99,20 +141,20 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Home') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('items.index')" :active="request()->routeIs('items.*')">
-                {{ __('Items') }}
-            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                 {{ __('Products') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('produce.index')" :active="request()->routeIs('produce.*')">
-                {{ __('Produce') }}
+            <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*') || request()->routeIs('ingredients.*')">
+                {{ __('Categories') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('units.index')" :active="request()->routeIs('units.*')">
-                {{ __('Units') }}
+            <x-responsive-nav-link :href="route('batch.index')" :active="request()->routeIs('batch.*')">
+                {{ __('Batch') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('restock.index')" :active="request()->routeIs('restock.*')">
-                {{ __('Restock') }}
+            <x-responsive-nav-link :href="route('supplies.index')" :active="request()->routeIs('supplies.index')">
+                {{ __('Supplies') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('supplies.ingredients')" :active="request()->routeIs('supplies.ingredients')">
+                {{ __(' - Ingredients') }}
             </x-responsive-nav-link>
         </div>
 

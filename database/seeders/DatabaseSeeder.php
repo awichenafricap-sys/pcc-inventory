@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         // Call other seeders
         $this->call([
             IngredientSeeder::class,
+            ProductSeeder::class,
+            ProductionScheduleSeeder::class,
         ]);
 
         // Your existing user seeders

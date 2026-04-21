@@ -13,7 +13,7 @@
                     icon: 'success',
                     title: 'Success',
                     text: '{{ session('success') }}',
-                    timer: 3000,
+                    timer: 1500,
                     showConfirmButton: false
                 });
             });
@@ -145,7 +145,10 @@
                                         <thead class="bg-gray-50 dark:bg-gray-900">
                                             <tr>
                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
-                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Stock</th>
+                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Beginning</th>
+                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Received</th>
+                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Current</th>
+                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ending</th>
                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                                             </tr>
@@ -157,8 +160,19 @@
                                                         <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $ingredient->name }}</div>
                                                         <div class="text-sm text-gray-500 dark:text-gray-400">{{ $ingredient->sku }}</div>
                                                     </td>
-                                                    <td class="px-4 py-3">
-                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->current_stock }} {{ $ingredient->unit_of_measurement }}</div>
+                                                    <td class="px-4 py-3 text-center">
+                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->beginning_inventory ?? 0 }}</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-center">
+                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->received_quantity ?? 0 }}</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-center">
+                                                        <div class="text-sm font-semibold @if($ingredient->status === 'in_stock') text-green-600 dark:text-green-400 @elseif($ingredient->status === 'low_stock') text-yellow-600 dark:text-yellow-400 @else text-red-600 dark:text-red-400 @endif">
+                                                            {{ $ingredient->current_stock }} {{ $ingredient->unit_of_measurement }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-center">
+                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->ending_inventory ?? 0 }}</div>
                                                     </td>
                                                     <td class="px-4 py-3">
                                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 

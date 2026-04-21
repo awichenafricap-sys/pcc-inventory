@@ -132,23 +132,24 @@
                     </div>
                     <form method="POST" action="{{ route('ingredients.store') }}">
                         @csrf
-                        <div class="grid grid-cols-4 gap-2">
+                        <!-- Basic Info -->
+                        <div class="grid grid-cols-4 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name <span class="text-red-500">*</span></label>
                                 <input type="text" name="name" value="{{ old('name') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="Ingredient name" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">SKU</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">SKU <span class="text-red-500">*</span></label>
                                 <input type="text" name="sku" value="{{ old('sku') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="SKU" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category <span class="text-red-500">*</span></label>
                                 <select name="category_id" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     required>
                                     <option value="">Select</option>
                                     @foreach($categories as $category)
@@ -159,59 +160,79 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit <span class="text-red-500">*</span></label>
                                 <input type="text" name="unit_of_measurement" value="{{ old('unit_of_measurement') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="kg, liters, pcs" required>
                             </div>
                         </div>
-                        <div class="grid grid-cols-4 gap-2 mt-2">
+                        
+                        <!-- Inventory -->
+                        <div class="grid grid-cols-4 gap-3 mt-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Current Stock</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Beginning</label>
+                                <input type="number" name="beginning_inventory" value="{{ old('beginning_inventory', 0) }}"
+                                    step="0.01"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                    placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Received</label>
+                                <input type="number" name="received_quantity" value="{{ old('received_quantity', 0) }}"
+                                    step="0.01"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                    placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Current Stock <span class="text-red-500">*</span></label>
                                 <input type="number" name="current_stock" value="{{ old('current_stock', 0) }}"
                                     step="0.01"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    required>
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                    placeholder="0.00" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Min Stock</label>
-                                <input type="number" name="minimum_stock" value="{{ old('minimum_stock', 0) }}"
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Ending</label>
+                                <input type="number" name="ending_inventory" value="{{ old('ending_inventory', 0) }}"
                                     step="0.01"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    required>
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                    placeholder="0.00">
                             </div>
+                        </div>
+                        
+                        <!-- Details -->
+                        <div class="grid grid-cols-4 gap-3 mt-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cost/Unit</label>
                                 <input type="number" name="cost_per_unit" value="{{ old('cost_per_unit') }}"
                                     step="0.01"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="0.00">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Expiry Date</label>
                                 <input type="date" name="expiry_date" value="{{ old('expiry_date') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2">
                             </div>
-                        </div>
-                        <div class="grid grid-cols-4 gap-2 mt-2">
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Supplier</label>
                                 <input type="text" name="supplier" value="{{ old('supplier') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="Supplier name">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
                                 <input type="text" name="location" value="{{ old('location') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="Storage location">
                             </div>
-                            <div class="col-span-2">
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <input type="text" name="description" value="{{ old('description') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    placeholder="Optional description">
-                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mt-3">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <input type="text" name="description" value="{{ old('description') }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                placeholder="Optional description">
                         </div>
                         <div class="flex justify-end space-x-2 pt-3">
                             <button type="button" onclick="toggleIngredientForm()"

@@ -19,12 +19,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Inventory resource routes
-    Route::resource('items', App\Http\Controllers\ItemController::class)->only(['index','create','store','edit','update','destroy']);
+    // Inventory resource routes (moved to supplies)
+    Route::resource('supplies', App\Http\Controllers\ItemController::class)->only(['index','store','update','destroy']);
+    Route::get('/supplies/{ingredient}/next', [App\Http\Controllers\ItemController::class, 'next'])->name('supplies.next');
+    Route::post('/supplies/{ingredient}/inventory-tracking', [App\Http\Controllers\ItemController::class, 'storeInventoryTracking'])->name('supplies.inventory-tracking.store');
     Route::resource('products', App\Http\Controllers\ProductController::class)->only(['index','create','store','edit','update','destroy']);
-    Route::resource('produce', App\Http\Controllers\ProduceController::class)->only(['index','create','store','edit','update','destroy']);
-    Route::resource('units', App\Http\Controllers\UnitController::class)->only(['index','create','store','edit','update','destroy']);
-    Route::resource('restock', App\Http\Controllers\RestockController::class)->only(['index','create','store','edit','update','destroy']);
 
      // Export routes
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
@@ -35,8 +34,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('/products/import/template', [ProductController::class, 'downloadTemplate'])->name('products.import.template');
 
-    Route::resource('ingredients', IngredientController::class);
-Route::resource('categories', CategoryController::class);
+    Route::resource('ingredients', IngredientController::class)->only(['show', 'store', 'edit', 'update', 'destroy']);
+    Route::patch('/ingredients/{ingredient}/inventory', [IngredientController::class, 'updateInventory'])->name('ingredients.update-inventory');
+    Route::resource('categories', CategoryController::class);
+    Route::get('/batch', App\Livewire\BatchProduction::class)->name('batch.index');
+    Route::get('/supplies/ingredients', [App\Http\Controllers\SupplyController::class, 'ingredients'])->name('supplies.ingredients');
+
 });
 
 

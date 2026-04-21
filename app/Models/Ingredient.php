@@ -17,18 +17,31 @@ class Ingredient extends Model
         'category_id',
         'unit_of_measurement',
         'current_stock',
+        'beginning_inventory',
+        'ending_inventory',
+        'received_date',
+        'received_quantity',
+        'released_date',
+        'released_quantity',
         'minimum_stock',
         'cost_per_unit',
         'supplier',
         'location',
         'expiry_date',
         'status',
-        'description'
+        'description',
+        'remarks'
     ];
 
     protected $casts = [
         'expiry_date' => 'date',
+        'received_date' => 'date',
+        'released_date' => 'date',
         'current_stock' => 'decimal:2',
+        'beginning_inventory' => 'decimal:2',
+        'ending_inventory' => 'decimal:2',
+        'received_quantity' => 'decimal:2',
+        'released_quantity' => 'decimal:2',
         'minimum_stock' => 'decimal:2',
         'cost_per_unit' => 'decimal:2'
     ];
@@ -39,13 +52,23 @@ class Ingredient extends Model
         return $this->belongsTo(Category::class);
     }
 
+    // Relationship with InventoryTracking
+    public function inventoryTrackings()
+    {
+        return $this->hasMany(InventoryTracking::class);
+    }
+
     // Auto-update status based on stock levels
     protected static function booted()
     {
         static::saving(function ($ingredient) {
+            // Formula: current_stock = beginning_inventory + received_quantity
+            $ingredient->current_stock = ($ingredient->beginning_inventory ?? 0) + ($ingredient->received_quantity ?? 0);
+            
+            // Update status based on current_stock
             if ($ingredient->current_stock <= 0) {
                 $ingredient->status = 'out_of_stock';
-            } elseif ($ingredient->current_stock <= $ingredient->minimum_stock) {
+            } elseif ($ingredient->current_stock <= ($ingredient->minimum_stock ?? 0)) {
                 $ingredient->status = 'low_stock';
             } else {
                 $ingredient->status = 'in_stock';

@@ -13,7 +13,9 @@ class Product extends Model
     'code',
     'name',
     'category',
+    'type',
     'unit',
+    'container_size_ml',
     'beginning',
     'current_stock',
     'reorder_level',
@@ -22,6 +24,11 @@ class Product extends Model
     'description',
     'image'
 ];
+
+public function productionSchedules()
+{
+    return $this->hasMany(ProductionSchedule::class);
+}
  public function getImageUrlAttribute()
     {
         if ($this->image) {
