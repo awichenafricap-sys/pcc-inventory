@@ -3,19 +3,37 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','description'];
+    protected $fillable = [
+    'code',
+    'name',
+    'category',
+    'type',
+    'unit',
+    'container_size_ml',
+    'beginning',
+    'current_stock',
+    'reorder_level',
+    'cost',
+    'ending',
+    'description',
+    'image'
+];
 
-    public function items(): BelongsToMany
+public function productionSchedules()
+{
+    return $this->hasMany(ProductionSchedule::class);
+}
+ public function getImageUrlAttribute()
     {
-        return $this->belongsToMany(Item::class)
-            ->withPivot('quantity_required')
-            ->withTimestamps();
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return asset('images/no-image.png'); // Default image kung walang upload
     }
 }

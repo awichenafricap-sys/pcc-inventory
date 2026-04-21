@@ -17,8 +17,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Call other seeders
+        $this->call([
+            IngredientSeeder::class,
+            ProductSeeder::class,
+            ProductionScheduleSeeder::class,
+        ]);
 
+        // Your existing user seeders
         User::updateOrCreate(
             ['email' => 'test@example.com'],
             [

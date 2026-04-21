@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
-use App\Models\Unit;
+use App\Models\Ingredient;
+use App\Models\InventoryTracking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,109 +23,115 @@ class ItemController extends Controller
 
     public function index()
     {
-        $items = Item::with('unit')->paginate(15);
-        $units = Unit::all();
-        return view('items.index', compact('items','units'));
-    }
-
-    public function create()
-    {
-        $units = Unit::all();
-        return view('items.create', compact('units'));
-    }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'unit_id' => 'nullable|exists:units,id',
-            'cost_per_unit' => 'nullable|numeric|min:0',
-            'is_default' => 'sometimes|boolean',
-            'default_quantity' => 'required|integer|min:1',
-            'stock' => 'nullable|integer|min:0',
-            'image' => 'nullable|image|max:2048',
-        ]);
-
-        $data['cost_per_unit'] = $data['cost_per_unit'] ?? 0;
-        $data['default_quantity'] = $data['default_quantity'] ?? 0;
-        $data['stock'] = $data['stock'] ?? 0;
-
-        // If a default quantity is provided, require that the user also checked the 'Default' checkbox
-        if (($data['default_quantity'] ?? 0) > 0 && ! $request->has('is_default')) {
-            return back()->withInput()->withErrors(['is_default' => 'Please check "Default" when setting a default quantity.']);
-        }
-
-        // Auto-set is_default when default_quantity > 0, otherwise use checkbox
-        $data['is_default'] = (($data['default_quantity'] ?? 0) > 0) || isset($data['is_default']) ? 1 : 0;
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('uploads/items', 'public');
-        }
-
-        $item = Item::create($data);
-
-        // If this is an AJAX request (inline add), return JSON so the page doesn't need to redirect
-        if ($request->ajax() || $request->wantsJson()) {
-            $item->load('unit');
+        $ingredients = Ingredient::with('category')->orderBy('name')->paginate(15);
+        
+        // Get totals across ALL pages for summary cards
+        $totalBeginning = Ingredient::sum('beginning_inventory');
+        $totalEnding = Ingredient::sum('current_stock');
+        
+        // Return JSON for AJAX requests
+        if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
-                'id' => $item->id,
-                'name' => $item->name,
-                'unit' => $item->unit?->name,
-                'cost_per_unit' => number_format($item->cost_per_unit, 2),
-                'default_quantity' => $item->default_quantity ?? 0,
-                'stock' => $item->stock,
-                'image_url' => $item->image ? asset('storage/' . $item->image) : null,
-            ], 201);
+                'totalBeginning' => $totalBeginning,
+                'totalEnding' => $totalEnding,
+            ]);
         }
-
-        return redirect()->route('items.index')->with('success', 'Item created.');
+        
+        return view('supplies.index', compact('ingredients', 'totalBeginning', 'totalEnding'));
     }
 
-    public function edit(Item $item)
+    public function next(Ingredient $ingredient)
     {
-        $units = Unit::all();
-        return view('items.edit', compact('item','units'));
+        $ingredient->load(['category', 'inventoryTrackings']);
+        return view('supplies.SuppIngredients.next', compact('ingredient'));
     }
 
-    public function update(Request $request, Item $item)
+    /**
+     * Store a new inventory tracking record.
+     */
+    public function storeInventoryTracking(Request $request, Ingredient $ingredient)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'unit_id' => 'nullable|exists:units,id',
-            'cost_per_unit' => 'nullable|numeric|min:0',
-            'is_default' => 'sometimes|boolean',
-            'default_quantity' => 'required|integer|min:1',
-            'stock' => 'nullable|integer|min:0',
-            'image' => 'nullable|image|max:2048',
-        ]);
+        try {
+            $data = $request->validate([
+                'in_released' => 'nullable|numeric|min:0',
+                'out' => 'nullable|string|max:255',
+            ]);
 
-        $data['cost_per_unit'] = $data['cost_per_unit'] ?? 0;
-        $data['default_quantity'] = $data['default_quantity'] ?? 0;
-        $data['stock'] = $data['stock'] ?? 0;
-
-        // If a default quantity is provided, require that the user also checked the 'Default' checkbox
-        if (($data['default_quantity'] ?? 0) > 0 && ! $request->has('is_default')) {
-            return back()->withInput()->withErrors(['is_default' => 'Please check "Default" when setting a default quantity.']);
-        }
-
-        // Auto-set is_default when default_quantity > 0, otherwise use checkbox
-        $data['is_default'] = (($data['default_quantity'] ?? 0) > 0) || isset($data['is_default']) ? 1 : 0;
-
-        if ($request->hasFile('image')) {
-            if ($item->image) {
-                Storage::disk('public')->delete($item->image);
+            // Get previous ending if exists, otherwise use beginning_inventory
+            $lastTracking = $ingredient->inventoryTrackings()->latest()->first();
+            $beginning = $lastTracking ? $lastTracking->ending : ($ingredient->beginning_inventory ?? 0);
+            
+            $inReleased = $data['in_released'] ?? 0;
+            
+            // Check if beginning is already zero (no more stock)
+            if ($beginning <= 0) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No more stock available. Please restock before releasing.',
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['in_released' => 'No more stock available. Please restock before releasing.']);
             }
-            $data['image'] = $request->file('image')->store('uploads/items', 'public');
+            
+            // Check if released exceeds beginning
+            if ($inReleased > $beginning) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Released quantity ({$inReleased}) exceeds available stock ({$beginning}).",
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['in_released' => "Released quantity ({$inReleased}) exceeds available stock ({$beginning})."]);
+            }
+            
+            // Formula: beginning - released = total
+            $total = $beginning - $inReleased;
+            $ending = $total;
+
+            $tracking = $ingredient->inventoryTrackings()->create([
+                'beginning' => $beginning,
+                'in_released' => $inReleased,
+                'out' => $data['out'] ?? null,
+                'total' => $total,
+                'ending' => $ending,
+            ]);
+
+            // Update released_quantity in ingredients table (sum of all in_released)
+            $totalReleased = $ingredient->inventoryTrackings()->sum('in_released');
+            $ingredient->released_quantity = $totalReleased;
+            $ingredient->save();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'tracking' => $tracking,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Inventory tracking added successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+            throw $e;
         }
-
-        $item->update($data);
-
-        return redirect()->route('items.index')->with('success', 'Item updated.');
     }
 
     public function destroy(Item $item)
     {
         $item->delete();
-        return redirect()->route('items.index')->with('success', 'Item deleted.');
+        return redirect()->route('supplies.index')->with('success', 'Item deleted.');
     }
 }

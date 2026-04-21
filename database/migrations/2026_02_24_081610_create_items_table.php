@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('unit_id')->nullable()->constrained('units')->nullOnDelete();
             $table->decimal('cost_per_unit', 10, 2)->default(0);
             $table->boolean('is_default')->default(false);
             $table->integer('stock')->default(0);
