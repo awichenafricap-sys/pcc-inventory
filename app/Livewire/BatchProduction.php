@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Product;
 use App\Models\ProductionSchedule;
-use App\Models\FlavorLayout;
 use App\Models\ColumnConfig;
 use App\Models\ProductFlavor;
 use Livewire\Attributes\Url;

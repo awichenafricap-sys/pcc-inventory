@@ -1,1 +1,0 @@
-lagyan ng laman kunwari
