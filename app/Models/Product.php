@@ -29,6 +29,12 @@ public function productionSchedules()
 {
     return $this->hasMany(ProductionSchedule::class);
 }
+
+public function flavors()
+{
+    return $this->hasMany(ProductFlavor::class);
+}
+
  public function getImageUrlAttribute()
     {
         if ($this->image) {

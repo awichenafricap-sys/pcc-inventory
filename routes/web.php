@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/ingredients/{ingredient}/inventory', [IngredientController::class, 'updateInventory'])->name('ingredients.update-inventory');
     Route::resource('categories', CategoryController::class);
     Route::get('/batch', App\Livewire\BatchProduction::class)->name('batch.index');
+    Route::get('/batch-production', App\Livewire\BatchProduction::class)->name('batch-production');
+    Route::get('/edit-manage/{productId}/{type?}', App\Livewire\EditManage::class)->name('edit-manage');
     Route::get('/supplies/ingredients', [App\Http\Controllers\SupplyController::class, 'ingredients'])->name('supplies.ingredients');
 
 });
