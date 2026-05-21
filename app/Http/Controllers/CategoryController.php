@@ -13,17 +13,20 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
+        // Ensure default "Flavor" category always exists
+        Category::firstOrCreate(
+            ['slug' => 'flavor'],
+            ['name' => 'Flavor', 'description' => 'Flavorings and extracts', 'color' => '#FF69B4']
+        );
+
         $categories = Category::withCount('ingredients')->orderBy('name')->get();
         
         $ingredientsQuery = Ingredient::with('category');
         
-        // Filter by status (low_stock, near_expiry)
+        // Filter by status (low_stock)
         if ($request->filled('filter')) {
             if ($request->filter === 'low_stock') {
-                $ingredientsQuery->whereRaw('current_stock <= minimum_stock');
-            } elseif ($request->filter === 'near_expiry') {
-                $ingredientsQuery->where('expiry_date', '>=', now())
-                                 ->where('expiry_date', '<=', now()->addDays(7));
+                $ingredientsQuery->whereRaw('released_used_items <= minimum_stock');
             }
         }
         
@@ -41,10 +44,9 @@ class CategoryController extends Controller
         // Calculate counts based on all ingredients (not filtered)
         $allIngredients = Ingredient::all();
         $totalIngredientsCount = $allIngredients->count();
-        $lowStockCount = $allIngredients->where('status', 'low_stock')->count();
-        $nearExpiryCount = $allIngredients->where('expiry_date', '>=', now())->where('expiry_date', '<=', now()->addDays(7))->count();
+        $lowStockCount = $allIngredients->filter(function($i) { $v = $i->released_used_items ?? 0; return $v > 0 && $v <= $i->minimum_stock; })->count();
         
-        return view('categories.index', compact('categories', 'ingredients', 'totalIngredientsCount', 'lowStockCount', 'nearExpiryCount'));
+        return view('categories.index', compact('categories', 'ingredients', 'totalIngredientsCount', 'lowStockCount'));
     }
 
     /**

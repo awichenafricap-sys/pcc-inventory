@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('item_product', function (Blueprint $table) {
+        Schema::create('batch_rules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
-            $table->integer('quantity_required');
+            $table->unsignedBigInteger('ingredient_product_id');
+            $table->foreign('ingredient_product_id')->references('id')->on('ingredient_product')->onDelete('cascade');
+            $table->integer('batch_limit');
+            $table->string('measurement');
             $table->timestamps();
-
-            $table->unique(['product_id', 'item_id']);
         });
     }
 
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_product');
+        Schema::dropIfExists('batch_rules');
     }
 };

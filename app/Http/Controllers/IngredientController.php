@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ingredient;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IngredientController extends Controller
 {
@@ -15,18 +16,15 @@ class IngredientController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|unique:ingredients,sku',
-            'category_id' => 'required|exists:categories,id',
+            'sku' => 'nullable|string|unique:ingredients,sku',
+            'category_id' => 'nullable|exists:categories,id',
             'unit_of_measurement' => 'required|string|max:50',
-            'beginning_inventory' => 'nullable|numeric|min:0',
-            'received_quantity' => 'nullable|numeric|min:0',
-            'ending_inventory' => 'nullable|numeric|min:0',
-            'current_stock' => 'required|numeric|min:0',
+            'minimum_stock' => 'nullable|numeric|min:0',
             'cost_per_unit' => 'nullable|numeric|min:0',
             'supplier' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'expiry_date' => 'nullable|date|after:today',
             'description' => 'nullable|string|max:1000',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $ingredient = Ingredient::create($validated);
@@ -62,18 +60,15 @@ class IngredientController extends Controller
         
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|unique:ingredients,sku,'.$id,
-            'category_id' => 'required|exists:categories,id',
+            'sku' => 'nullable|string|unique:ingredients,sku,'.$id,
+            'category_id' => 'nullable|exists:categories,id',
             'unit_of_measurement' => 'required|string|max:50',
-            'beginning_inventory' => 'nullable|numeric|min:0',
-            'received_quantity' => 'nullable|numeric|min:0',
-            'ending_inventory' => 'nullable|numeric|min:0',
-            'current_stock' => 'required|numeric|min:0',
+            'minimum_stock' => 'nullable|numeric|min:0',
             'cost_per_unit' => 'nullable|numeric|min:0',
             'supplier' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'expiry_date' => 'nullable|date|after:today',
             'description' => 'nullable|string|max:1000',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $ingredient->update($validated);
@@ -101,23 +96,23 @@ class IngredientController extends Controller
     public function updateInventory(Request $request, Ingredient $ingredient)
     {
         $validated = $request->validate([
-            'beginning_inventory' => 'nullable|numeric|min:0',
-            'received_date' => 'nullable|date',
-            'received_quantity' => 'nullable|numeric|min:0',
-            'released_date' => 'nullable|date',
-            'released_quantity' => 'nullable|numeric|min:0',
-            'remarks' => 'nullable|string|max:500',
+            'minimum_stock' => 'nullable|numeric|min:0',
+            'cost_per_unit' => 'nullable|numeric|min:0',
+            'supplier' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $ingredient->fill($validated);
-        // current_stock is auto-calculated by the model: beginning_inventory + received_quantity
         $ingredient->save();
 
-        // Return JSON for AJAX request
+        // Get stock info from the current_ingredient_stock view
+        $stockView = \DB::table('current_ingredient_stock')->where('ingredient_id', $ingredient->id)->first();
+
         return response()->json([
             'success' => true,
-            'current_stock' => number_format($ingredient->current_stock, 2),
-            'status' => $ingredient->status,
+            'current_stock' => $stockView ? number_format($stockView->current_stock, 2) : '0.00',
+            'status' => $stockView->status ?? 'out_of_stock',
         ]);
     }
 }

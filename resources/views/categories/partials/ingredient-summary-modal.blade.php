@@ -56,8 +56,8 @@
                         <div>
                             <span class="text-gray-500 dark:text-gray-400">Status:</span>
                             <span class="ml-1 px-2 py-0.5 text-xs font-semibold rounded 
-                                @if($ingredient->status === 'in_stock') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                @elseif($ingredient->status === 'low_stock') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                @if($ingredient->stock_status_color === 'success') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                @elseif($ingredient->stock_status_color === 'warning') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
                                 @else bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 @endif">
                                 {{ $ingredient->stock_status }}
                             </span>

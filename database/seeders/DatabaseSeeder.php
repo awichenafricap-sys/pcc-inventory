@@ -17,10 +17,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Call other seeders
+        // Call other seeders (order matters for foreign keys)
         $this->call([
-            IngredientSeeder::class,
+            CategorySeeder::class,
+            ColumnConfigSeeder::class,
             ProductSeeder::class,
+            IngredientSeeder::class,
             ProductionScheduleSeeder::class,
         ]);
 

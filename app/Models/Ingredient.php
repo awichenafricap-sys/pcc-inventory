@@ -16,34 +16,30 @@ class Ingredient extends Model
         'sku',
         'category_id',
         'unit_of_measurement',
-        'current_stock',
-        'beginning_inventory',
-        'ending_inventory',
-        'received_date',
-        'received_quantity',
-        'released_date',
-        'released_quantity',
         'minimum_stock',
         'cost_per_unit',
         'supplier',
         'location',
-        'expiry_date',
-        'status',
         'description',
-        'remarks'
+        'is_active',
+        'beginning_inventory',
+        'in_items',
+        'date_receive',
+        'receive_items',
+        'actual_ending',
+        'released_used_items',
     ];
 
     protected $casts = [
-        'expiry_date' => 'date',
-        'received_date' => 'date',
-        'released_date' => 'date',
-        'current_stock' => 'decimal:2',
-        'beginning_inventory' => 'decimal:2',
-        'ending_inventory' => 'decimal:2',
-        'received_quantity' => 'decimal:2',
-        'released_quantity' => 'decimal:2',
         'minimum_stock' => 'decimal:2',
-        'cost_per_unit' => 'decimal:2'
+        'cost_per_unit' => 'decimal:2',
+        'is_active' => 'boolean',
+        'beginning_inventory' => 'decimal:2',
+        'in_items' => 'decimal:2',
+        'receive_items' => 'decimal:2',
+        'actual_ending' => 'decimal:2',
+        'released_used_items' => 'decimal:2',
+        'date_receive' => 'date',
     ];
 
     // Relationship with Category
@@ -52,79 +48,52 @@ class Ingredient extends Model
         return $this->belongsTo(Category::class);
     }
 
-    // Relationship with InventoryTracking
-    public function inventoryTrackings()
+    public function batches()
     {
-        return $this->hasMany(InventoryTracking::class);
+        return $this->hasMany(IngredientBatch::class);
     }
 
-    // Auto-update status based on stock levels
-    protected static function booted()
+    public function stockView()
     {
-        static::saving(function ($ingredient) {
-            // Formula: current_stock = beginning_inventory + received_quantity
-            $ingredient->current_stock = ($ingredient->beginning_inventory ?? 0) + ($ingredient->received_quantity ?? 0);
-            
-            // Update status based on current_stock
-            if ($ingredient->current_stock <= 0) {
-                $ingredient->status = 'out_of_stock';
-            } elseif ($ingredient->current_stock <= ($ingredient->minimum_stock ?? 0)) {
-                $ingredient->status = 'low_stock';
-            } else {
-                $ingredient->status = 'in_stock';
-            }
-        });
+        return $this->hasOne(IngredientStockView::class, 'ingredient_id', 'id');
     }
 
-    // Scopes for filtering
-    public function scopeInStock($query)
+    public function products()
     {
-        return $query->where('status', 'in_stock');
+        return $this->belongsToMany(Product::class, 'ingredient_product')->withPivot('measurement')->withTimestamps();
     }
 
-    public function scopeLowStock($query)
+    public function recipeItems()
     {
-        return $query->where('status', 'low_stock');
+        return $this->hasMany(ProductRecipeItem::class);
     }
 
-    public function scopeOutOfStock($query)
+    public function scopeActive($query)
     {
-        return $query->where('status', 'out_of_stock');
+        return $query->where('is_active', true);
     }
 
-    public function scopeNearExpiry($query, $days = 7)
+    public function getCurrentStockAttribute(): float
     {
-        return $query->where('expiry_date', '<=', now()->addDays($days))
-                     ->where('expiry_date', '>', now());
-    }
-
-    // Helper methods
-    public function isLowStock(): bool
-    {
-        return $this->status === 'low_stock';
-    }
-
-    public function isOutOfStock(): bool
-    {
-        return $this->status === 'out_of_stock';
+        return $this->batches()
+            ->whereIn('status', ['available', 'partial'])
+            ->sum('remaining_quantity');
     }
 
     public function getStockStatusAttribute(): string
     {
-        return match($this->status) {
-            'out_of_stock' => 'Out of Stock',
-            'low_stock' => 'Low Stock',
-            default => 'In Stock'
-        };
+        $stock = $this->current_stock;
+        if ($stock <= 0) return 'Out of Stock';
+        if ($stock <= $this->minimum_stock) return 'Low Stock';
+        return 'In Stock';
     }
 
     public function getStockStatusColorAttribute(): string
     {
-        return match($this->status) {
-            'out_of_stock' => 'danger',
-            'low_stock' => 'warning',
-            default => 'success'
-        };
+        $stock = $this->current_stock;
+        if ($stock <= 0) return 'danger';
+        if ($stock <= $this->minimum_stock) return 'warning';
+        return 'success';
     }
 
     public function getFormattedCostAttribute(): string

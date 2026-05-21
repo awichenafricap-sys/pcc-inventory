@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
+use App\Models\ProductFlavor;
+use App\Models\ProductSize;
 use App\Models\ProductionSchedule;
 use Illuminate\Database\Seeder;
 
@@ -10,90 +12,124 @@ class ProductionScheduleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get all products
-        $choco = Product::where('code', 'CHO-001')->first();
-        $coffee = Product::where('code', 'COF-001')->first();
-        $lacto = Product::where('code', 'LAC-001')->first();
-        $yogurt = Product::where('code', 'YOG-001')->first();
-        $milkTea = Product::where('code', 'MTE-001')->first();
-
-        if (!$choco || !$coffee || !$lacto || !$yogurt || !$milkTea) {
-            $this->command->warn('Please run ProductSeeder first.');
-            return;
-        }
-
-        // Production schedules for 1 week (Monday to Sunday)
-        $schedules = [
-            // Monday (2024-01-15)
-            '2024-01-15' => [
-                [$choco->id, 5],
-                [$coffee->id, 2],
-                [$lacto->id, 4],
-                [$yogurt->id, 0],
-                [$milkTea->id, 3],
+        $scheduleDefs = [
+            [
+                'product_code' => 'JUC-001',
+                'flavor_name' => 'Orange',
+                'column' => '500ml',
+                'type' => 'Bottle',
+                'dates' => [
+                    ['offset' => 0, 'batch_quantity' => 5],
+                    ['offset' => 1, 'batch_quantity' => 4],
+                    ['offset' => 2, 'batch_quantity' => 4],
+                ],
             ],
-            // Tuesday (2024-01-16)
-            '2024-01-16' => [
-                [$choco->id, 3],
-                [$coffee->id, 5],
-                [$lacto->id, 2],
-                [$yogurt->id, 1],
-                [$milkTea->id, 4],
+            [
+                'product_code' => 'JUC-001',
+                'flavor_name' => 'Orange',
+                'column' => '1000ml',
+                'type' => 'Bottle',
+                'dates' => [
+                    ['offset' => 1, 'batch_quantity' => 3],
+                ],
             ],
-            // Wednesday (2024-01-17)
-            '2024-01-17' => [
-                [$choco->id, 0],
-                [$coffee->id, 1],
-                [$lacto->id, 3],
-                [$yogurt->id, 2],
-                [$milkTea->id, 2],
+            [
+                'product_code' => 'CHO-001',
+                'flavor_name' => 'Classic',
+                'column' => '500ml',
+                'type' => 'Bottle',
+                'dates' => [
+                    ['offset' => 0, 'batch_quantity' => 2],
+                    ['offset' => 1, 'batch_quantity' => 5],
+                ],
             ],
-            // Thursday (2024-01-18)
-            '2024-01-18' => [
-                [$choco->id, 4],
-                [$coffee->id, 3],
-                [$lacto->id, 1],
-                [$yogurt->id, 5],
-                [$milkTea->id, 0],
+            [
+                'product_code' => 'COF-001',
+                'flavor_name' => 'Original',
+                'column' => '200ml',
+                'type' => 'Bottle',
+                'dates' => [
+                    ['offset' => 0, 'batch_quantity' => 4],
+                    ['offset' => 1, 'batch_quantity' => 2],
+                    ['offset' => 2, 'batch_quantity' => 1],
+                ],
             ],
-            // Friday (2024-01-19)
-            '2024-01-19' => [
-                [$choco->id, 2],
-                [$coffee->id, 4],
-                [$lacto->id, 5],
-                [$yogurt->id, 3],
-                [$milkTea->id, 1],
+            [
+                'product_code' => 'LAC-001',
+                'flavor_name' => 'Original',
+                'column' => '200ml',
+                'type' => 'Bottle',
+                'dates' => [
+                    ['offset' => 0, 'batch_quantity' => 3],
+                    ['offset' => 2, 'batch_quantity' => 3],
+                ],
             ],
-            // Saturday (2024-01-20)
-            '2024-01-20' => [
-                [$choco->id, 6],
-                [$coffee->id, 2],
-                [$lacto->id, 0],
-                [$yogurt->id, 4],
-                [$milkTea->id, 5],
+            [
+                'product_code' => 'YOG-001',
+                'flavor_name' => 'Plain',
+                'column' => '120ml',
+                'type' => 'Yogurt',
+                'dates' => [
+                    ['offset' => 1, 'batch_quantity' => 1],
+                    ['offset' => 2, 'batch_quantity' => 2],
+                ],
             ],
-            // Sunday (2024-01-21)
-            '2024-01-21' => [
-                [$choco->id, 1],
-                [$coffee->id, 0],
-                [$lacto->id, 2],
-                [$yogurt->id, 3],
-                [$milkTea->id, 4],
+            [
+                'product_code' => 'MTE-001',
+                'flavor_name' => 'Classic',
+                'column' => '500ml',
+                'type' => 'Bottle',
+                'dates' => [
+                    ['offset' => 0, 'batch_quantity' => 3],
+                    ['offset' => 1, 'batch_quantity' => 4],
+                    ['offset' => 2, 'batch_quantity' => 2],
+                ],
             ],
         ];
 
-        foreach ($schedules as $date => $products) {
-            foreach ($products as [$productId, $batchQuantity]) {
+        $weekStart = now()->startOfWeek();
+
+        foreach ($scheduleDefs as $def) {
+            $product = Product::where('code', $def['product_code'])->first();
+            if (!$product) {
+                continue;
+            }
+
+            $flavor = ProductFlavor::where('product_id', $product->id)
+                ->where('flavor_name', $def['flavor_name'])
+                ->first();
+
+            if (!$flavor) {
+                continue;
+            }
+
+            $size = ProductSize::where('product_flavor_id', $flavor->id)
+                ->whereHas('columnConfig', fn ($q) => $q->where('column_name', $def['column']))
+                ->first();
+
+            if (!$size) {
+                $this->command->warn("Size not found: {$def['product_code']} / {$def['flavor_name']} / {$def['column']}");
+                continue;
+            }
+
+            foreach ($def['dates'] as $entry) {
+                $date = $weekStart->copy()->addDays($entry['offset'])->toDateString();
+
                 ProductionSchedule::updateOrCreate(
                     [
-                        'product_id' => $productId,
+                        'product_flavor_id' => $flavor->id,
+                        'product_size_id' => $size->id,
                         'production_date' => $date,
+                        'type' => $def['type'],
                     ],
                     [
-                        'batch_quantity' => $batchQuantity,
+                        'batch_quantity' => $entry['batch_quantity'],
+                        'status' => 'planned',
                     ]
                 );
             }
         }
+
+        $this->command->info('Production schedules seeded successfully!');
     }
 }

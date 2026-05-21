@@ -14,8 +14,6 @@ return new class extends Migration
         $table->string('name');
         $table->string('category');
         $table->string('unit');
-        $table->integer('current_stock')->default(0);
-        $table->integer('reorder_level')->default(0);
         $table->text('description')->nullable();
         $table->timestamps();
     });

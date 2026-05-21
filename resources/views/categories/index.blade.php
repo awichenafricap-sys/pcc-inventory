@@ -46,7 +46,7 @@
                 </nav>
             </div>
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <!-- Total Categories -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-5">
                     <div class="flex items-center">
@@ -93,21 +93,6 @@
                     </div>
                 </a>
 
-                <!-- Near Expiry -->
-                <a href="{{ route('categories.index', ['filter' => 'near_expiry']) }}" 
-                   class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-5 block hover:ring-2 hover:ring-red-400 transition-all {{ request('filter') == 'near_expiry' ? 'ring-2 ring-red-400' : '' }}">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-red-100 dark:bg-red-900 rounded-lg p-3">
-                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Near Expiry</p>
-                            <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $nearExpiryCount }}</p>
-                        </div>
-                    </div>
-                </a>
             </div>
 
             <!-- ADD INGREDIENT FORM - Hidden by default -->
@@ -161,38 +146,39 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit <span class="text-red-500">*</span></label>
-                                <input type="text" name="unit_of_measurement" value="{{ old('unit_of_measurement') }}"
+                                <select name="unit_of_measurement"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
-                                    placeholder="kg, liters, pcs" required>
+                                    required>
+                                    <option value="">Select Unit</option>
+                                    <option value="Pieces" {{ old('unit_of_measurement') == 'Pieces' ? 'selected' : '' }}>Pieces</option>
+                                    <option value="Kilos" {{ old('unit_of_measurement') == 'Kilos' ? 'selected' : '' }}>Kilos</option>
+                                    <option value="Grams" {{ old('unit_of_measurement') == 'Grams' ? 'selected' : '' }}>Grams</option>
+                                    <option value="Liters" {{ old('unit_of_measurement') == 'Liters' ? 'selected' : '' }}>Liters</option>
+                                    <option value="Packs" {{ old('unit_of_measurement') == 'Packs' ? 'selected' : '' }}>Packs</option>
+                                    <option value="Cans" {{ old('unit_of_measurement') == 'Cans' ? 'selected' : '' }}>Cans</option>
+                                    <option value="Bags" {{ old('unit_of_measurement') == 'Bags' ? 'selected' : '' }}>Bags</option>
+                                    <option value="Boxes" {{ old('unit_of_measurement') == 'Boxes' ? 'selected' : '' }}>Boxes</option>
+                                    <option value="Bottles" {{ old('unit_of_measurement') == 'Bottles' ? 'selected' : '' }}>Bottles</option>
+                                    <option value="Cups" {{ old('unit_of_measurement') == 'Cups' ? 'selected' : '' }}>Cups</option>
+                                    <option value="Sachets" {{ old('unit_of_measurement') == 'Sachets' ? 'selected' : '' }}>Sachets</option>
+                                    <option value="Milliliters" {{ old('unit_of_measurement') == 'Milliliters' ? 'selected' : '' }}>Milliliters</option>
+                                    <option value="Dozen" {{ old('unit_of_measurement') == 'Dozen' ? 'selected' : '' }}>Dozen</option>
+                                </select>
                             </div>
                         </div>
                         
                         <!-- Inventory -->
-                        <div class="grid grid-cols-4 gap-3 mt-3">
+                        <div class="grid grid-cols-2 gap-3 mt-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Beginning</label>
-                                <input type="number" name="beginning_inventory" value="{{ old('beginning_inventory', 0) }}"
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Minimum Stock</label>
+                                <input type="number" name="minimum_stock" value="{{ old('minimum_stock', 0) }}"
                                     step="0.01"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="0.00">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Received</label>
-                                <input type="number" name="received_quantity" value="{{ old('received_quantity', 0) }}"
-                                    step="0.01"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
-                                    placeholder="0.00">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Current Stock <span class="text-red-500">*</span></label>
-                                <input type="number" name="current_stock" value="{{ old('current_stock', 0) }}"
-                                    step="0.01"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
-                                    placeholder="0.00" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Ending</label>
-                                <input type="number" name="ending_inventory" value="{{ old('ending_inventory', 0) }}"
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cost per Unit</label>
+                                <input type="number" name="cost_per_unit" value="{{ old('cost_per_unit', 0) }}"
                                     step="0.01"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="0.00">
@@ -200,19 +186,7 @@
                         </div>
                         
                         <!-- Details -->
-                        <div class="grid grid-cols-4 gap-3 mt-3">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cost/Unit</label>
-                                <input type="number" name="cost_per_unit" value="{{ old('cost_per_unit') }}"
-                                    step="0.01"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
-                                    placeholder="0.00">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Expiry Date</label>
-                                <input type="date" name="expiry_date" value="{{ old('expiry_date') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm p-2">
-                            </div>
+                        <div class="grid grid-cols-2 gap-3 mt-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Supplier</label>
                                 <input type="text" name="supplier" value="{{ old('supplier') }}"
@@ -298,19 +272,6 @@
                                     </svg>
                                 </a>
                             </span>
-                            @elseif(request('filter') == 'near_expiry')
-                            <input type="hidden" name="filter" value="near_expiry">
-                            <span class="px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full text-sm font-medium flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Near Expiry Filter
-                                <a href="{{ route('categories.index') }}" class="ml-1 hover:text-red-600">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </a>
-                            </span>
                             @endif
                             <div class="relative flex-1 sm:w-80">
                                 <input type="text" 
@@ -349,7 +310,6 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expiry Date</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -363,39 +323,47 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->sku }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
+                                        @php
+                                            $catColor = $ingredient->category->color ?? null;
+                                            if ($catColor) {
+                                                $r = hexdec(substr($catColor, 1, 2));
+                                                $g = hexdec(substr($catColor, 3, 2));
+                                                $b = hexdec(substr($catColor, 5, 2));
+                                                $luminance = (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+                                                $textColor = $luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+                                            }
+                                        @endphp
+                                        @if($catColor)
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" style="background-color: {{ $catColor }}; color: {{ $textColor }};">
+                                            {{ $ingredient->category->name ?? 'No Category' }}
+                                        </span>
+                                        @else
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                             {{ $ingredient->category->name ?? 'No Category' }}
                                         </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($ingredient->status === 'out_of_stock')
+                                        @php $stockVal = $ingredient->released_used_items ?? 0; @endphp
+                                        @if($stockVal <= 0)
                                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 animate-pulse">
                                             Out of Stock
                                         </span>
-                                        @elseif($ingredient->status === 'low_stock')
+                                        @elseif($stockVal <= $ingredient->minimum_stock)
                                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                                             Low Stock
+                                        </span>
+                                        @else
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            In Stock
                                         </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->current_stock }}</div>
+                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ number_format($ingredient->released_used_items ?? 0, 1) }}</div>
                                         <div class="text-sm text-gray-500 dark:text-gray-400">Min: {{ $ingredient->minimum_stock }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->unit_of_measurement }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        @if($ingredient->expiry_date)
-                                            @if($ingredient->expiry_date <= now())
-                                                <span class="text-red-600 dark:text-red-400 font-medium">{{ $ingredient->expiry_date->format('M d, Y') }}</span>
-                                            @elseif($ingredient->expiry_date <= now()->addDays(7))
-                                                <span class="text-yellow-600 dark:text-yellow-400 font-medium">{{ $ingredient->expiry_date->format('M d, Y') }}</span>
-                                            @else
-                                                <span class="text-gray-900 dark:text-gray-100">{{ $ingredient->expiry_date->format('M d, Y') }}</span>
-                                            @endif
-                                        @else
-                                            <span class="text-gray-400">-</span>
-                                        @endif
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

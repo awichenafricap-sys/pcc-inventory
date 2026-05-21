@@ -40,8 +40,6 @@ class ProductsImport implements ToModel, WithHeadingRow, WithValidation, WithChu
                 'name' => trim($row['name']),
                 'category' => trim($row['category']),
                 'unit' => trim($row['unit']),
-                'current_stock' => (int) ($row['current_stock'] ?? 0),
-                'reorder_level' => (int) ($row['reorder_level'] ?? 0),
                 'description' => !empty($row['description']) ? trim($row['description']) : null,
             ]);
 
@@ -64,8 +62,6 @@ class ProductsImport implements ToModel, WithHeadingRow, WithValidation, WithChu
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:100',
             'unit' => 'required|string|max:50',
-            'current_stock' => 'required|numeric|min:0',
-            'reorder_level' => 'required|numeric|min:0',
         ];
     }
 

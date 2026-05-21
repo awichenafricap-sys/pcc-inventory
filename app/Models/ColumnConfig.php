@@ -12,11 +12,14 @@ class ColumnConfig extends Model
         'column_label',
         'sort_order',
         'is_active',
+        'divisor_type',
+        'divisor_value',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'sort_order' => 'integer',
+        'divisor_value' => 'float',
     ];
 
     public function scopeForType($query, $type)

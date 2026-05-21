@@ -92,7 +92,7 @@
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Total Stock Value</p>
                                 <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                                     ₱{{ number_format($category->ingredients->sum(function($ingredient) {
-                                        return $ingredient->cost_per_unit * $ingredient->current_stock;
+                                        return $ingredient->cost_per_unit * ($ingredient->released_used_items ?? 0);
                                     }), 2) }}
                                 </p>
                             </div>
@@ -104,7 +104,7 @@
                                     <p class="text-sm font-medium text-yellow-700 dark:text-yellow-300">Low Stock Items</p>
                                 </div>
                                 <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-                                    {{ $category->ingredients->where('status', 'low_stock')->count() }}
+                                    {{ $category->ingredients->filter(function($i) { $v = $i->released_used_items ?? 0; return $v > 0 && $v <= $i->minimum_stock; })->count() }}
                                 </p>
                             </div>
                             <div class="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg text-center border-2 border-red-200 dark:border-red-700 shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -115,7 +115,7 @@
                                     <p class="text-sm font-medium text-red-700 dark:text-red-300">Out of Stock</p>
                                 </div>
                                 <p class="text-3xl font-bold text-red-600 dark:text-red-400">
-                                    {{ $category->ingredients->where('status', 'out_of_stock')->count() }}
+                                    {{ $category->ingredients->filter(function($i) { return ($i->released_used_items ?? 0) <= 0; })->count() }}
                                 </p>
                             </div>
                         </div>
@@ -145,10 +145,8 @@
                                         <thead class="bg-gray-50 dark:bg-gray-900">
                                             <tr>
                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
-                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Beginning</th>
-                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Received</th>
-                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Current</th>
-                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ending</th>
+                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Stock</th>
+                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Min. Stock</th>
                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                                             </tr>
@@ -161,25 +159,23 @@
                                                         <div class="text-sm text-gray-500 dark:text-gray-400">{{ $ingredient->sku }}</div>
                                                     </td>
                                                     <td class="px-4 py-3 text-center">
-                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->beginning_inventory ?? 0 }}</div>
-                                                    </td>
-                                                    <td class="px-4 py-3 text-center">
-                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->received_quantity ?? 0 }}</div>
-                                                    </td>
-                                                    <td class="px-4 py-3 text-center">
-                                                        <div class="text-sm font-semibold @if($ingredient->status === 'in_stock') text-green-600 dark:text-green-400 @elseif($ingredient->status === 'low_stock') text-yellow-600 dark:text-yellow-400 @else text-red-600 dark:text-red-400 @endif">
-                                                            {{ $ingredient->current_stock }} {{ $ingredient->unit_of_measurement }}
+                                                        @php $stockVal = $ingredient->released_used_items ?? 0; @endphp
+                                                        <div class="text-sm font-semibold @if($stockVal <= 0) text-red-600 dark:text-red-400 @elseif($stockVal <= $ingredient->minimum_stock) text-yellow-600 dark:text-yellow-400 @else text-green-600 dark:text-green-400 @endif">
+                                                            {{ number_format($stockVal, 1) }} {{ $ingredient->unit_of_measurement }}
                                                         </div>
                                                     </td>
                                                     <td class="px-4 py-3 text-center">
-                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->ending_inventory ?? 0 }}</div>
+                                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $ingredient->minimum_stock ?? 0 }}</div>
                                                     </td>
                                                     <td class="px-4 py-3">
+                                                        @php $stockVal = $ingredient->released_used_items ?? 0; @endphp
                                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                            @if($ingredient->status === 'in_stock') bg-green-100 text-green-800
-                                                            @elseif($ingredient->status === 'low_stock') bg-yellow-100 text-yellow-800
-                                                            @else bg-red-100 text-red-800 @endif">
-                                                            {{ $ingredient->stock_status }}
+                                                            @if($stockVal <= 0) bg-red-100 text-red-800
+                                                            @elseif($stockVal <= $ingredient->minimum_stock) bg-yellow-100 text-yellow-800
+                                                            @else bg-green-100 text-green-800 @endif">
+                                                            @if($stockVal <= 0) Out of Stock
+                                                            @elseif($stockVal <= $ingredient->minimum_stock) Low Stock
+                                                            @else In Stock @endif
                                                         </span>
                                                     </td>
                                                     <td class="px-4 py-3">

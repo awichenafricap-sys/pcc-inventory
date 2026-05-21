@@ -6,6 +6,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Exports\ProductsExport;
 use App\Imports\ProductsImport;
 use App\Exports\ProductsPdfExport;
@@ -44,9 +45,16 @@ class ProductController extends Controller
             $query->where('category', $request->category);
         }
 
-        $products = $query->paginate(10)->withQueryString();
+        $products = $query->with('ingredients', 'flavors.sizes.columnConfig')->paginate(10)->withQueryString();
+        $ingredients = \App\Models\Ingredient::where('is_active', true)->orderBy('name')->get();
+        $categories = \App\Models\Category::orderBy('name')->get();
+        $flavors = \App\Models\Ingredient::where('is_active', true)
+            ->whereHas('category', function ($q) {
+                $q->where('name', 'Flavor');
+            })->orderBy('name')->get();
+        $sizes = \App\Models\ColumnConfig::where('is_active', true)->where('column_name', '!=', 'batch')->orderBy('sort_order')->get()->groupBy('type');
 
-        return view('products.index', compact('products'));
+        return view('products.index', compact('products', 'ingredients', 'categories', 'flavors', 'sizes'));
     }
 
 
@@ -61,34 +69,63 @@ class ProductController extends Controller
             'code' => 'required|unique:products,code|max:50',
             'name' => 'required|max:255',
             'category' => 'required|max:100',
+            'flavors' => 'nullable|array',
+            'flavors.*' => 'string|max:100',
+            'flavor_sizes' => 'nullable|array',
+            'flavor_sizes.*' => 'nullable|array',
+            'flavor_sizes.*.*' => 'string|max:100',
+            'type' => 'nullable|string|max:50',
             'unit' => 'required|max:50',
-            'beginning' => 'nullable|integer|min:0',
-            'current_stock' => 'required|integer|min:0',
-            'reorder_level' => 'required|integer|min:0',
-            'cost' => 'nullable|numeric|min:0',
-            'ending' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
             'description' => 'nullable|string|max:500',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max - mas practical
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'ingredients' => 'nullable|array',
+            'ingredients.*' => 'exists:ingredients,id',
         ]);
         
         try {
-            $data = $request->except('image');
-            
-            // Calculate ending automatically: reorder_level - current_stock
-            $reorderLevel = $request->reorder_level ?? 0;
-            $currentStock = $request->current_stock ?? 0;
-            $data['ending'] = $reorderLevel - $currentStock;
-            
+            $data = $request->except('image', 'ingredients', 'flavors', 'flavor_sizes');
+
             // Handle image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $imagePath = $request->file('image')->store('products', 'public');
                 $data['image'] = $imagePath;
             }
 
-            Product::create($data);
+            $product = Product::create($data);
+
+            // Sync ingredients
+            if ($request->has('ingredients')) {
+                $product->ingredients()->sync($request->ingredients);
+            }
+
+            // Create flavors and per-flavor sizes
+            $flavorSizes = $request->input('flavor_sizes', []);
+            if ($request->has('flavors')) {
+                foreach ($request->flavors as $flavorName) {
+                    $flavor = $product->flavors()->create([
+                        'flavor_name' => $flavorName,
+                        'is_active' => true,
+                    ]);
+
+                    // Create sizes for this specific flavor
+                    if (isset($flavorSizes[$flavorName]) && is_array($flavorSizes[$flavorName])) {
+                        foreach ($flavorSizes[$flavorName] as $sizeName) {
+                            $columnConfig = \App\Models\ColumnConfig::where('column_name', $sizeName)
+                                ->where('type', $request->type)->first();
+                            $sizeMl = (int) preg_replace('/[^0-9]/', '', $sizeName);
+                            $flavor->sizes()->create([
+                                'column_config_id' => $columnConfig?->id,
+                                'size_ml' => $sizeMl > 0 ? $sizeMl : 0,
+                                'is_active' => true,
+                            ]);
+                        }
+                    }
+                }
+            }
 
             return redirect()
-                ->route('products.index')
+                ->route('products.ingredients', $product->id)
                 ->with('success', 'Product "' . $request->name . '" added successfully.');
                 
         } catch (\Illuminate\Database\QueryException $e) {
@@ -124,24 +161,23 @@ class ProductController extends Controller
             'code' => 'required|unique:products,code,' . $product->id . '|max:50',
             'name' => 'required|max:255',
             'category' => 'required|max:100',
+            'flavors' => 'nullable|array',
+            'flavors.*' => 'string|max:100',
+            'flavor_sizes' => 'nullable|array',
+            'flavor_sizes.*' => 'nullable|array',
+            'flavor_sizes.*.*' => 'string|max:100',
+            'type' => 'nullable|string|max:50',
             'unit' => 'required|max:50',
-            'beginning' => 'nullable|integer|min:0',
-            'current_stock' => 'required|integer|min:0',
-            'reorder_level' => 'required|integer|min:0',
-            'cost' => 'nullable|numeric|min:0',
-            'ending' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
             'description' => 'nullable|string|max:500',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'ingredients' => 'nullable|array',
+            'ingredients.*' => 'exists:ingredients,id',
         ]);
 
         try {
-            $data = $request->except('image');
-            
-            // Calculate ending automatically: reorder_level - current_stock
-            $reorderLevel = $request->reorder_level ?? 0;
-            $currentStock = $request->current_stock ?? 0;
-            $data['ending'] = $reorderLevel - $currentStock;
-            
+            $data = $request->except('image', 'ingredients', 'flavors', 'flavor_sizes');
+
             // Handle image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 // Delete old image if exists
@@ -155,6 +191,34 @@ class ProductController extends Controller
             }
 
             $product->update($data);
+
+            // Sync ingredients
+            $product->ingredients()->sync($request->input('ingredients', []));
+
+            // Sync flavors and per-flavor sizes - delete old, create new
+            $product->flavors()->delete();
+            $flavorSizes = $request->input('flavor_sizes', []);
+            if ($request->has('flavors')) {
+                foreach ($request->flavors as $flavorName) {
+                    $flavor = $product->flavors()->create([
+                        'flavor_name' => $flavorName,
+                        'is_active' => true,
+                    ]);
+
+                    if (isset($flavorSizes[$flavorName]) && is_array($flavorSizes[$flavorName])) {
+                        foreach ($flavorSizes[$flavorName] as $sizeName) {
+                            $columnConfig = \App\Models\ColumnConfig::where('column_name', $sizeName)
+                                ->where('type', $request->type)->first();
+                            $sizeMl = (int) preg_replace('/[^0-9]/', '', $sizeName);
+                            $flavor->sizes()->create([
+                                'column_config_id' => $columnConfig?->id,
+                                'size_ml' => $sizeMl > 0 ? $sizeMl : 0,
+                                'is_active' => true,
+                            ]);
+                        }
+                    }
+                }
+            }
 
             return redirect()
                 ->route('products.index')
@@ -180,6 +244,116 @@ class ProductController extends Controller
             return back()->withInput()
                 ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
+    }
+
+    public function ingredientDetail(Product $product)
+    {
+        $product->load('ingredients.category', 'flavors');
+
+        $ingredientProductIds = DB::table('ingredient_product')
+            ->where('product_id', $product->id)
+            ->pluck('id', 'ingredient_id');
+
+        $ingredientBatchRules = [];
+        foreach ($ingredientProductIds as $ingredientId => $ingredientProductId) {
+            $rules = \App\Models\BatchRule::where('ingredient_product_id', $ingredientProductId)
+                ->orderBy('batch_limit')
+                ->get(['batch_limit', 'measurement']);
+            if ($rules->isNotEmpty()) {
+                $ingredientBatchRules[$ingredientId] = $rules;
+            }
+        }
+
+        return view('products.productNext', compact('product', 'ingredientBatchRules'));
+    }
+
+    public function updateIngredientMeasurement(Request $request, Product $product)
+    {
+        $request->validate([
+            'ingredient_id' => 'required|exists:ingredients,id',
+            'measurement' => 'nullable|string|max:100',
+            'batch_limit' => 'nullable|integer|min:1',
+        ]);
+
+        $product->ingredients()->updateExistingPivot($request->ingredient_id, [
+            'measurement' => $request->measurement,
+            'batch_limit' => $request->batch_limit,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function updateFlavorMeasurement(Request $request, $flavor)
+    {
+        $flavor = \App\Models\ProductFlavor::findOrFail($flavor);
+        $flavor->measurement = $request->measurement;
+        $flavor->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function saveBatchRules(Request $request, Product $product)
+    {
+        $request->validate([
+            'ingredient_id' => 'required|exists:ingredients,id',
+            'rules' => 'present|array',
+        ]);
+
+        $rules = $request->input('rules', []);
+
+        if (!empty($rules)) {
+            $request->validate([
+                'rules.*.batch_limit' => 'required|integer|min:1',
+                'rules.*.measurement' => 'required|string|max:100',
+            ]);
+        }
+
+        $ingredientProduct = DB::table('ingredient_product')
+            ->where('product_id', $product->id)
+            ->where('ingredient_id', $request->ingredient_id)
+            ->first();
+
+        if (!$ingredientProduct) {
+            return response()->json(['success' => false, 'message' => 'Ingredient not found for this product'], 404);
+        }
+
+        \App\Models\BatchRule::where('ingredient_product_id', $ingredientProduct->id)->delete();
+
+        foreach ($rules as $rule) {
+            \App\Models\BatchRule::create([
+                'ingredient_product_id' => $ingredientProduct->id,
+                'batch_limit' => $rule['batch_limit'],
+                'measurement' => $rule['measurement'],
+            ]);
+        }
+
+        return response()->json(['success' => true, 'rules' => $rules]);
+    }
+
+    public function getBatchRules(Product $product, $ingredient)
+    {
+        $ingredientProduct = DB::table('ingredient_product')
+            ->where('product_id', $product->id)
+            ->where('ingredient_id', $ingredient)
+            ->first();
+
+        if (!$ingredientProduct) {
+            return response()->json(['rules' => []]);
+        }
+
+        $rules = \App\Models\BatchRule::where('ingredient_product_id', $ingredientProduct->id)
+            ->orderBy('batch_limit')
+            ->get(['batch_limit', 'measurement']);
+
+        return response()->json(['rules' => $rules]);
+    }
+
+    public function deleteFlavor($flavor)
+    {
+        $flavor = \App\Models\ProductFlavor::findOrFail($flavor);
+        $flavor->delete();
+
+        return response()->json(['success' => true]);
     }
 
     public function destroy(Product $product)
@@ -320,12 +494,12 @@ public function import(Request $request)
     public function downloadTemplate()
     {
         $headers = [
-            'code', 'name', 'category', 'unit', 'current_stock', 'reorder_level', 'description'
+            'code', 'name', 'category', 'unit', 'description'
         ];
 
         $sampleData = [
-            ['P-001', 'Sample Product', 'Solid', 'Pieces', 100, 10, 'Sample description'],
-            ['', 'Another Product', 'Liquid', 'Liters', 50, 5, 'Optional description']
+            ['P-001', 'Sample Product', 'Solid', 'Pieces', 'Sample description'],
+            ['', 'Another Product', 'Liquid', 'Liters', 'Optional description']
         ];
 
         return Excel::download(new class($headers, $sampleData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {

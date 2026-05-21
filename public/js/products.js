@@ -77,20 +77,11 @@ function validateProductForm() {
             const name = document.getElementById('productName').value;
             const category = document.getElementById('productCategory').value;
             const unit = document.getElementById('productUnit').value;
-            const stock = document.getElementById('currentStock').value;
-            const reorderLevel = document.getElementById('reorderLevel').value;
-            
+
             // Basic validation
-            if (!code || !name || !category || !unit || stock === '' || reorderLevel === '') {
+            if (!code || !name || !category || !unit) {
                 e.preventDefault();
                 alert('Please fill in all required fields.');
-                return false;
-            }
-            
-            // Stock validation
-            if (parseInt(stock) < 0 || parseInt(reorderLevel) < 0) {
-                e.preventDefault();
-                alert('Stock and reorder level must be positive numbers.');
                 return false;
             }
         });
@@ -344,35 +335,62 @@ function clearSearch() {
 }
 
 // Show edit modal
-function showEditModal(id, code, name, category, unit, stock, reorder, imagePath, description, beginning, cost, credit, other) {
+function showEditModal(id, code, name, category, flavorNames, type, unit, isActive, imagePath, description, ingredientIds, flavorSizesJson) {
     // Set form action
     const form = document.getElementById('simpleEditForm');
     if (form) {
         form.action = '/products/' + id;
     }
-    
+
     // Set form fields
     const codeField = document.getElementById('simple_code');
     const nameField = document.getElementById('simple_name');
     const categoryField = document.getElementById('simple_category');
+    const flavorField = document.getElementById('simple_flavors');
+    const typeField = document.getElementById('simple_type');
     const unitField = document.getElementById('simple_unit');
-    const stockField = document.getElementById('simple_stock');
-    const reorderField = document.getElementById('simple_reorder');
-    const beginningField = document.getElementById('simple_beginning');
-    const costField = document.getElementById('simple_cost');
-    const creditField = document.getElementById('simple_credit');
-    const otherField = document.getElementById('simple_other');
-    
+    const isActiveField = document.getElementById('simple_is_active');
+
     if (codeField) codeField.value = code;
     if (nameField) nameField.value = name;
     if (categoryField) categoryField.value = category;
+    if (typeField) typeField.value = type || '';
     if (unitField) unitField.value = unit;
-    if (stockField) stockField.value = stock;
-    if (reorderField) reorderField.value = reorder;
-    if (beginningField) beginningField.value = beginning || 0;
-    if (costField) costField.value = cost || 0;
-    if (creditField) creditField.value = credit || 0;
-    if (otherField) otherField.value = other || '';
+    if (isActiveField) isActiveField.value = isActive ? '1' : '0';
+
+    // Set flavors multi-select
+    if (flavorField && flavorNames) {
+        const names = flavorNames.split(',');
+        for (let i = 0; i < flavorField.options.length; i++) {
+            flavorField.options[i].selected = names.includes(flavorField.options[i].value);
+        }
+    }
+
+    // Generate per-flavor size checkboxes and check existing ones
+    if (typeField) {
+        updateFlavorSizes('simple');
+        if (flavorSizesJson) {
+            try {
+                const flavorSizes = JSON.parse(flavorSizesJson);
+                Object.keys(flavorSizes).forEach(function(flavorName) {
+                    const sizes = flavorSizes[flavorName];
+                    sizes.forEach(function(sizeName) {
+                        const cb = document.getElementById('simple_size_' + flavorName + '_' + sizeName);
+                        if (cb) cb.checked = true;
+                    });
+                });
+            } catch(e) {}
+        }
+    }
+
+    // Set ingredients multi-select
+    const ingredientsField = document.getElementById('simple_ingredients');
+    if (ingredientsField && ingredientIds) {
+        const ids = ingredientIds.split(',');
+        for (let i = 0; i < ingredientsField.options.length; i++) {
+            ingredientsField.options[i].selected = ids.includes(ingredientsField.options[i].value);
+        }
+    }
     
     // Set description if available
     const descField = document.getElementById('simple_description');

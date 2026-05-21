@@ -20,9 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
     // Inventory resource routes (moved to supplies)
-    Route::resource('supplies', App\Http\Controllers\ItemController::class)->only(['index','store','update','destroy']);
-    Route::get('/supplies/{ingredient}/next', [App\Http\Controllers\ItemController::class, 'next'])->name('supplies.next');
-    Route::post('/supplies/{ingredient}/inventory-tracking', [App\Http\Controllers\ItemController::class, 'storeInventoryTracking'])->name('supplies.inventory-tracking.store');
+    Route::resource('supplies', App\Http\Controllers\ItemController::class)->only(['index']);
     Route::resource('products', App\Http\Controllers\ProductController::class)->only(['index','create','store','edit','update','destroy']);
 
      // Export routes
@@ -33,14 +31,24 @@ Route::middleware('auth')->group(function () {
     // Import routes
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('/products/import/template', [ProductController::class, 'downloadTemplate'])->name('products.import.template');
+    Route::get('/products/{product}/ingredients', [ProductController::class, 'ingredientDetail'])->name('products.ingredients');
+    Route::post('/products/{product}/ingredients/measurement', [ProductController::class, 'updateIngredientMeasurement'])->name('products.ingredients.measurement');
+    Route::post('/products/{product}/ingredients/rules', [ProductController::class, 'saveBatchRules'])->name('products.ingredients.rules');
+    Route::get('/products/{product}/ingredients/{ingredient}/rules', [ProductController::class, 'getBatchRules'])->name('products.ingredients.rules.get');
+    Route::post('/product-flavors/{flavor}/measurement', [ProductController::class, 'updateFlavorMeasurement'])->name('product-flavors.measurement');
+    Route::delete('/product-flavors/{flavor}', [ProductController::class, 'deleteFlavor'])->name('product-flavors.destroy');
 
     Route::resource('ingredients', IngredientController::class)->only(['show', 'store', 'edit', 'update', 'destroy']);
     Route::patch('/ingredients/{ingredient}/inventory', [IngredientController::class, 'updateInventory'])->name('ingredients.update-inventory');
     Route::resource('categories', CategoryController::class);
     Route::get('/batch', App\Livewire\BatchProduction::class)->name('batch.index');
     Route::get('/batch-production', App\Livewire\BatchProduction::class)->name('batch-production');
-    Route::get('/edit-manage/{productId}/{type?}', App\Livewire\EditManage::class)->name('edit-manage');
     Route::get('/supplies/ingredients', [App\Http\Controllers\SupplyController::class, 'ingredients'])->name('supplies.ingredients');
+    Route::post('/supplies/ingredients', [App\Http\Controllers\SupplyController::class, 'updateIngredients'])->name('supplies.ingredients.update');
+    Route::post('/supplies/ingredients/{ingredient}/field', [App\Http\Controllers\SupplyController::class, 'updateField'])->name('supplies.ingredients.field');
+    Route::post('/supplies/ingredients/{ingredient}/daily-movement', [App\Http\Controllers\SupplyController::class, 'updateDailyMovement'])->name('supplies.ingredients.daily-movement');
+
+    Route::get('/supplies/ingredients/{ingredient}', [App\Http\Controllers\SupplyController::class, 'ingredientDetail'])->name('supplies.ingredients.detail');
 
 });
 
