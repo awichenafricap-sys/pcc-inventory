@@ -70,18 +70,19 @@
                                 datePicker.value = urlDate;
                             }
                             
-                            // On change, update URL parameter and dispatch Livewire event
+                            // On change, update URL parameter and dispatch Livewire event or reload
                             datePicker.addEventListener('change', function() {
                                 const selectedDate = this.value;
-                                
-                                // Update URL without reload
                                 const newUrl = new URL(window.location);
                                 newUrl.searchParams.set('date', selectedDate);
-                                window.history.pushState({}, '', newUrl);
-                                
-                                // Dispatch Livewire event to refresh content
-                                if (window.Livewire) {
+
+                                if (window.Livewire && document.querySelector('[wire\\:id]')) {
+                                    // Livewire page - smooth update via event
+                                    window.history.pushState({}, '', newUrl);
                                     window.Livewire.dispatch('dateChanged', { date: selectedDate });
+                                } else {
+                                    // Non-Livewire page - reload with date param
+                                    window.location.href = newUrl.toString();
                                 }
                             });
                         });

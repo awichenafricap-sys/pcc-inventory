@@ -47,11 +47,14 @@
                                 <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $ingredient->name }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">SKU: {{ $ingredient->sku }}</p>
                             </div>
+                            @php $stockVal = $ingredient->released_used_items ?? 0; @endphp
                             <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
-                                @if($ingredient->status === 'in_stock') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                @elseif($ingredient->status === 'low_stock') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
-                                @else bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 @endif">
-                                {{ $ingredient->stock_status }}
+                                @if($stockVal <= 0) bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                @elseif($stockVal <= $ingredient->minimum_stock) bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                @else bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 @endif">
+                                @if($stockVal <= 0) Out of Stock
+                                @elseif($stockVal <= $ingredient->minimum_stock) Low Stock
+                                @else In Stock @endif
                             </span>
                         </div>
 
@@ -92,37 +95,21 @@
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Stock Information</h3>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Beginning</p>
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $ingredient->beginning_inventory ?? 0 }} {{ $ingredient->unit_of_measurement }}</p>
-                                </div>
-                                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Received</p>
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $ingredient->received_quantity ?? 0 }} {{ $ingredient->unit_of_measurement }}</p>
-                                </div>
-                                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Current Stock</p>
-                                    <p class="text-3xl font-bold @if($ingredient->status === 'in_stock') text-green-600 dark:text-green-400 @elseif($ingredient->status === 'low_stock') text-yellow-600 dark:text-yellow-400 @else text-red-600 dark:text-red-400 @endif">
-                                        {{ $ingredient->current_stock }} {{ $ingredient->unit_of_measurement }}
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Stock</p>
+                                    @php $stockVal = $ingredient->released_used_items ?? 0; @endphp
+                                    <p class="text-3xl font-bold @if($stockVal <= 0) text-red-600 dark:text-red-400 @elseif($stockVal <= $ingredient->minimum_stock) text-yellow-600 dark:text-yellow-400 @else text-green-600 dark:text-green-400 @endif">
+                                        {{ number_format($stockVal, 1) }} {{ $ingredient->unit_of_measurement }}
                                     </p>
                                 </div>
                                 <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Ending</p>
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $ingredient->ending_inventory ?? 0 }} {{ $ingredient->unit_of_measurement }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Minimum Stock</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $ingredient->minimum_stock ?? 0 }} {{ $ingredient->unit_of_measurement }}</p>
+                                </div>
+                                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Active Batches</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $ingredient->batches->whereIn('status', ['available', 'partial'])->count() }}</p>
                                 </div>
                             </div>
-                            @if($ingredient->expiry_date)
-                                <div class="mt-4 p-4 rounded-lg text-center @if($ingredient->expiry_date <= now()->addDays(7)) bg-red-50 dark:bg-red-900/30 @else bg-gray-50 dark:bg-gray-700 @endif">
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Expiry Date</p>
-                                    <p class="text-lg font-semibold @if($ingredient->expiry_date <= now()->addDays(7)) text-red-600 dark:text-red-400 @else text-gray-900 dark:text-gray-100 @endif">
-                                        {{ $ingredient->expiry_date->format('M d, Y') }}
-                                        @if($ingredient->expiry_date <= now())
-                                            (Expired)
-                                        @elseif($ingredient->expiry_date <= now()->addDays(7))
-                                            (Expires soon)
-                                        @endif
-                                    </p>
-                                </div>
-                            @endif
                         </div>
                     </div>
 
@@ -135,11 +122,11 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Cost per Unit</p>
                                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ $ingredient->formatted_cost }}</p>
                                 </div>
-                                @if($ingredient->cost_per_unit && $ingredient->current_stock > 0)
+                                @if($ingredient->cost_per_unit && ($ingredient->released_used_items ?? 0) > 0)
                                     <div class="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg text-center">
                                         <p class="text-sm text-gray-500 dark:text-gray-400">Total Value</p>
                                         <p class="text-3xl font-bold text-green-600 dark:text-green-400">
-                                            &#8369;{{ number_format($ingredient->cost_per_unit * $ingredient->current_stock, 2) }}
+                                            &#8369;{{ number_format($ingredient->cost_per_unit * ($ingredient->released_used_items ?? 0), 2) }}
                                         </p>
                                     </div>
                                 @endif

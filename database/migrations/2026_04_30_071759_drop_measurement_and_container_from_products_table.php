@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('flavor_layouts', function (Blueprint $table) {
-            $table->date('production_date')->nullable()->after('product_id');
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropColumn(['measurement', 'container_size_ml']);
         });
     }
 
@@ -21,8 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('flavor_layouts', function (Blueprint $table) {
-            $table->dropColumn('production_date');
+        Schema::table('products', function (Blueprint $table) {
+            $table->string('measurement', 100)->nullable();
+            $table->integer('container_size_ml')->nullable();
         });
     }
 };

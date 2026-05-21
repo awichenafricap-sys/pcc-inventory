@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_trackings', function (Blueprint $table) {
+        Schema::create('ingredient_daily_movements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('ingredient_id')->constrained()->onDelete('cascade');
-            $table->decimal('beginning', 10, 2)->default(0);
-            $table->decimal('in_released', 10, 2)->default(0);
-            $table->string('out')->nullable();
-            $table->decimal('total', 10, 2)->default(0);
+            $table->foreignId('ingredient_id')->constrained()->cascadeOnDelete();
+            $table->date('movement_date');
+            $table->decimal('in_items', 10, 2)->default(0);
+            $table->decimal('total_out', 10, 2)->default(0);
             $table->decimal('ending', 10, 2)->default(0);
             $table->timestamps();
+
+            $table->unique(['ingredient_id', 'movement_date']);
         });
     }
 
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('inventory_trackings');
+        Schema::dropIfExists('ingredient_daily_movements');
     }
 };

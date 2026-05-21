@@ -10,30 +10,34 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-    'code',
-    'name',
-    'category',
-    'type',
-    'unit',
-    'container_size_ml',
-    'beginning',
-    'current_stock',
-    'reorder_level',
-    'cost',
-    'ending',
-    'description',
-    'image'
-];
+        'code',
+        'name',
+        'category',
+        'type',
+        'unit',
+        'description',
+        'image',
+        'is_active',
+    ];
 
-public function productionSchedules()
-{
-    return $this->hasMany(ProductionSchedule::class);
-}
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
-public function flavors()
-{
-    return $this->hasMany(ProductFlavor::class);
-}
+    public function flavors()
+    {
+        return $this->hasMany(ProductFlavor::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function ingredients()
+    {
+        return $this->belongsToMany(Ingredient::class, 'ingredient_product')->withPivot('measurement')->withTimestamps();
+    }
 
  public function getImageUrlAttribute()
     {

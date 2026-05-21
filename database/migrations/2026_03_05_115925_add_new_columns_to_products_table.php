@@ -12,11 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->integer('beginning')->default(0)->after('unit');
-            $table->decimal('cost', 10, 2)->nullable()->after('current_stock');
-            $table->decimal('credit', 10, 2)->nullable()->after('cost');
+            $table->decimal('credit', 10, 2)->nullable()->after('unit');
             $table->string('other')->nullable()->after('category');
-            $table->integer('ending')->nullable()->after('reorder_level');
         });
     }
 
@@ -26,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn(['beginning', 'cost', 'credit', 'other', 'ending']);
+            $table->dropColumn(['credit', 'other']);
         });
     }
 };

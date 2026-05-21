@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop foreign key constraint from flavor_layouts first
-        Schema::table('flavor_layouts', function (Blueprint $table) {
-            $table->dropForeign(['product_id']);
-        });
+        // Drop foreign key constraint from flavor_layouts first (if table exists)
+        if (Schema::hasTable('flavor_layouts')) {
+            Schema::table('flavor_layouts', function (Blueprint $table) {
+                $table->dropForeign(['product_id']);
+            });
+        }
 
         Schema::dropIfExists('add_overalls');
     }

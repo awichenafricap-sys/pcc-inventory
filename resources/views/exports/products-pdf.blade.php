@@ -104,9 +104,6 @@
                 <th>Name</th>
                 <th>Category</th>
                 <th>Unit</th>
-                <th>Stock</th>
-                <th>Reorder Level</th>
-                <th>Status</th>
                 <th>Description</th>
             </tr>
         </thead>
@@ -117,27 +114,11 @@
                 <td>{{ $product->name }}</td>
                 <td>{{ $product->category }}</td>
                 <td>{{ $product->unit }}</td>
-                <td>{{ $product->current_stock }}</td>
-                <td>{{ $product->reorder_level }}</td>
-                <td>
-                    @php
-                        $status = 'In Stock';
-                        $statusClass = 'status-in-stock';
-                        if ($product->current_stock == 0) {
-                            $status = 'Out of Stock';
-                            $statusClass = 'status-out-stock';
-                        } elseif ($product->current_stock <= $product->reorder_level) {
-                            $status = 'Low Stock';
-                            $statusClass = 'status-low-stock';
-                        }
-                    @endphp
-                    <span class="status-badge {{ $statusClass }}">{{ $status }}</span>
-                </td>
                 <td>{{ $product->description ?? 'N/A' }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="8" style="text-align: center;">No products found</td>
+                <td colspan="5" style="text-align: center;">No products found</td>
             </tr>
             @endforelse
         </tbody>

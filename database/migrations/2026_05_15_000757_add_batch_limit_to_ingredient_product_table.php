@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('items', function (Blueprint $table) {
-            //
+        Schema::table('ingredient_product', function (Blueprint $table) {
+            $table->integer('batch_limit')->nullable()->after('measurement');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('items', function (Blueprint $table) {
-            //
+        Schema::table('ingredient_product', function (Blueprint $table) {
+            $table->dropColumn('batch_limit');
         });
     }
 };

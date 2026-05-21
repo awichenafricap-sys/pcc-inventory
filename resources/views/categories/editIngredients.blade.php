@@ -94,35 +94,19 @@
                                     
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
-                                            <x-input-label for="beginning_inventory" :value="__('Beginning Inventory')" />
-                                            <x-text-input id="beginning_inventory" name="beginning_inventory" type="number" 
+                                            <x-input-label for="minimum_stock" :value="__('Minimum Stock')" />
+                                            <x-text-input id="minimum_stock" name="minimum_stock" type="number" 
                                                           step="0.01" class="mt-1 block w-full" 
-                                                          value="{{ old('beginning_inventory', $ingredient->beginning_inventory) }}" placeholder="0.00" />
-                                            <x-input-error :messages="$errors->get('beginning_inventory')" class="mt-2" />
+                                                          value="{{ old('minimum_stock', $ingredient->minimum_stock) }}" placeholder="0.00" />
+                                            <x-input-error :messages="$errors->get('minimum_stock')" class="mt-2" />
                                         </div>
 
                                         <div>
-                                            <x-input-label for="received_quantity" :value="__('Received')" />
-                                            <x-text-input id="received_quantity" name="received_quantity" type="number" 
-                                                          step="0.01" class="mt-1 block w-full" 
-                                                          value="{{ old('received_quantity', $ingredient->received_quantity) }}" placeholder="0.00" />
-                                            <x-input-error :messages="$errors->get('received_quantity')" class="mt-2" />
-                                        </div>
-
-                                        <div>
-                                            <x-input-label for="current_stock" :value="__('Current Stock')" />
-                                            <x-text-input id="current_stock" name="current_stock" type="number" 
-                                                          step="0.01" class="mt-1 block w-full" 
-                                                          value="{{ old('current_stock', $ingredient->current_stock) }}" required placeholder="0.00" />
-                                            <x-input-error :messages="$errors->get('current_stock')" class="mt-2" />
-                                        </div>
-
-                                        <div>
-                                            <x-input-label for="ending_inventory" :value="__('Ending Inventory')" />
-                                            <x-text-input id="ending_inventory" name="ending_inventory" type="number" 
-                                                          step="0.01" class="mt-1 block w-full" 
-                                                          value="{{ old('ending_inventory', $ingredient->ending_inventory) }}" placeholder="0.00" />
-                                            <x-input-error :messages="$errors->get('ending_inventory')" class="mt-2" />
+                                            <x-input-label for="current_stock" :value="__('Current Stock (from batches)')" />
+                                            <x-text-input id="current_stock" type="number" 
+                                                          step="0.01" class="mt-1 block w-full bg-gray-100 dark:bg-gray-700 cursor-not-allowed" 
+                                                          value="{{ $ingredient->current_stock }}" disabled />
+                                            <p class="text-xs text-gray-500 mt-1">Auto-calculated from ingredient batches</p>
                                         </div>
                                     </div>
                                 </div>
@@ -151,14 +135,6 @@
                                                   class="mt-1 block w-full" value="{{ old('location', $ingredient->location) }}" 
                                                   placeholder="e.g., Warehouse A, Shelf 1" />
                                     <x-input-error :messages="$errors->get('location')" class="mt-2" />
-                                </div>
-
-                                <!-- Expiry Date -->
-                                <div>
-                                    <x-input-label for="expiry_date" :value="__('Expiry Date')" />
-                                    <x-text-input id="expiry_date" name="expiry_date" type="date" 
-                                                  class="mt-1 block w-full" value="{{ old('expiry_date', $ingredient->expiry_date ? $ingredient->expiry_date->format('Y-m-d') : '') }}" />
-                                    <x-input-error :messages="$errors->get('expiry_date')" class="mt-2" />
                                 </div>
                             </div>
                         </div>

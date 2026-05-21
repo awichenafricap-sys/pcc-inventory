@@ -46,33 +46,19 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping, WithS
             'Name',
             'Category',
             'Unit',
-            'Current Stock',
-            'Reorder Level',
             'Description',
-            'Status',
             'Created At'
         ];
     }
 
     public function map($product): array
     {
-        // Determine status
-        $status = 'In Stock';
-        if ($product->current_stock == 0) {
-            $status = 'Out of Stock';
-        } elseif ($product->current_stock <= $product->reorder_level) {
-            $status = 'Low Stock';
-        }
-
         return [
             $product->code,
             $product->name,
             $product->category,
             $product->unit,
-            $product->current_stock,
-            $product->reorder_level,
             $product->description,
-            $status,
             $product->created_at->format('Y-m-d H:i:s')
         ];
     }

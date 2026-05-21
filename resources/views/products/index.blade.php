@@ -6,6 +6,60 @@
     </x-slot>
 
     <!-- Include external JavaScript -->
+    <script>
+        const sizesData = @json($sizes);
+        function updateFlavorSizes(prefix) {
+            const typeEl = document.getElementById(prefix + '_type');
+            const flavorEl = document.getElementById(prefix + '_flavors');
+            const container = document.getElementById(prefix + '_flavor_sizes');
+            const rowsEl = document.getElementById(prefix + '_flavor_sizes_rows');
+            if (!typeEl || !flavorEl || !container || !rowsEl) return;
+
+            const type = typeEl.value;
+            const selectedFlavors = Array.from(flavorEl.selectedOptions).map(o => o.value);
+            rowsEl.innerHTML = '';
+
+            if (!type || !sizesData[type] || selectedFlavors.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            const sizes = sizesData[type];
+
+            selectedFlavors.forEach(function(flavorName) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3 flex-wrap';
+
+                const label = document.createElement('span');
+                label.className = 'text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[100px]';
+                label.textContent = flavorName;
+                row.appendChild(label);
+
+                sizes.forEach(function(size) {
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.name = 'flavor_sizes[' + flavorName + '][]';
+                    cb.value = size.column_name;
+                    cb.id = prefix + '_size_' + flavorName + '_' + size.column_name;
+                    cb.className = 'rounded border-gray-300 text-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-600 dark:border-gray-500';
+
+                    const cbLabel = document.createElement('label');
+                    cbLabel.htmlFor = cb.id;
+                    cbLabel.className = 'text-xs text-gray-600 dark:text-gray-400 mr-2 cursor-pointer';
+                    cbLabel.textContent = size.column_label;
+
+                    const wrap = document.createElement('span');
+                    wrap.className = 'inline-flex items-center gap-1';
+                    wrap.appendChild(cb);
+                    wrap.appendChild(cbLabel);
+                    row.appendChild(wrap);
+                });
+
+                rowsEl.appendChild(row);
+            });
+        }
+    </script>
     <script src="{{ asset('js/products.js') }}"></script>
     
     <div class="py-6">
@@ -107,82 +161,122 @@
                         class="space-y-2">
                         @csrf
 
-                        <div class="grid grid-cols-4 gap-2">
+                        <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Code</label>
                                 <input type="text" name="code" value="{{ old('code') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="P-001" required>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <input type="text" name="name" value="{{ old('name') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     placeholder="Product name" required>
                             </div>
 
                             <div>
-                                <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
-                                <select name="category" value="{{ old('category') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
+                                <select name="category"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
                                     required>
                                     <option value="">Select Category</option>
-                                    <option value="Frozen" {{ old('category') == 'Frozen' ? 'selected' : '' }}>Frozen</option>
-                                    <option value="Liquid" {{ old('category') == 'Liquid' ? 'selected' : '' }}>Liquid</option>
-                                    <option value="Solid" {{ old('category') == 'Solid' ? 'selected' : '' }}>Solid</option>
-                                    <option value="Pastries" {{ old('category') == 'Pastries' ? 'selected' : '' }}>Pastries</option>
-                                    <option value="Meat" {{ old('category') == 'Meat' ? 'selected' : '' }}>Meat</option>
-                                    <option value="Others" {{ old('category') == 'Others' ? 'selected' : '' }}>Others</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->name }}" {{ old('category', 'Flavor') == $category->name ? 'selected' : '' }}>{{ $category->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Type</label>
+                                <select name="type" id="create_type"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                    onchange="updateFlavorSizes('create'); storeSelectedType(this.value)">
+                                    <option value="">Select Type</option>
+                                    <option value="Bottle" {{ old('type') == 'Bottle' ? 'selected' : '' }}>Bottle</option>
+                                    <option value="Sachet" {{ old('type') == 'Sachet' ? 'selected' : '' }}>Sachet</option>
+                                    <option value="Cup" {{ old('type') == 'Cup' ? 'selected' : '' }}>Cup</option>
+                                    <option value="Yogurt" {{ old('type') == 'Yogurt' ? 'selected' : '' }}>Yogurt</option>
+                                    <option value="Batch" {{ old('type') == 'Batch' ? 'selected' : '' }}>Batch</option>
                                 </select>
                             </div>
 
                             <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Flavor</label>
+                                <select name="flavors[]" id="create_flavors" multiple
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                    size="5"
+                                    onchange="updateFlavorSizes('create')">
+                                    @foreach($flavors as $flavor)
+                                        <option value="{{ $flavor->name }}" {{ in_array($flavor->name, old('flavors', [])) ? 'selected' : '' }}>{{ $flavor->name }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                            </div>
+
+                            <div>
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Unit</label>
-                                <input type="text" name="unit" value="{{ old('unit') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    placeholder="Pieces, Kilos, Liters, etc." required>
+                                <select name="unit"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                    required>
+                                    <option value="">Select Unit</option>
+                                    <option value="Pieces" {{ old('unit') == 'Pieces' ? 'selected' : '' }}>Pieces</option>
+                                    <option value="Kilos" {{ old('unit') == 'Kilos' ? 'selected' : '' }}>Kilos</option>
+                                    <option value="Grams" {{ old('unit') == 'Grams' ? 'selected' : '' }}>Grams</option>
+                                    <option value="Liters" {{ old('unit') == 'Liters' ? 'selected' : '' }}>Liters</option>
+                                    <option value="Packs" {{ old('unit') == 'Packs' ? 'selected' : '' }}>Packs</option>
+                                    <option value="Cans" {{ old('unit') == 'Cans' ? 'selected' : '' }}>Cans</option>
+                                    <option value="Bags" {{ old('unit') == 'Bags' ? 'selected' : '' }}>Bags</option>
+                                    <option value="Boxes" {{ old('unit') == 'Boxes' ? 'selected' : '' }}>Boxes</option>
+                                    <option value="Bottles" {{ old('unit') == 'Bottles' ? 'selected' : '' }}>Bottles</option>
+                                    <option value="Cups" {{ old('unit') == 'Cups' ? 'selected' : '' }}>Cups</option>
+                                    <option value="Sachets" {{ old('unit') == 'Sachets' ? 'selected' : '' }}>Sachets</option>
+                                    <option value="Milliliters" {{ old('unit') == 'Milliliters' ? 'selected' : '' }}>Milliliters</option>
+                                    <option value="Dozen" {{ old('unit') == 'Dozen' ? 'selected' : '' }}>Dozen</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <!-- Per-Flavor Sizes Section -->
+                        <div id="create_flavor_sizes" class="mt-3" style="display:none;">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Sizes per Flavor</label>
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-2" id="create_flavor_sizes_rows">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Select type and flavors above to configure sizes per flavor</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Active</label>
+                                <select name="is_active"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2">
+                                    <option value="1" {{ old('is_active', '1') == '1' ? 'selected' : '' }}>Yes</option>
+                                    <option value="0" {{ old('is_active') == '0' ? 'selected' : '' }}>No</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-4 gap-2">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Beginning</label>
-                                <input type="number" name="beginning" value="{{ old('beginning', 0) }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    min="0" value="0">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <input type="text" name="description" value="{{ old('description') }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                placeholder="Optional description">
+                        </div>
 
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Current
-                                    Stock</label>
-                                <input type="number" name="current_stock" value="{{ old('current_stock') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    min="0" required>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Reorder
-                                    Level</label>
-                                <input type="number" name="reorder_level" value="{{ old('reorder_level') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    min="0" required>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cost</label>
-                                <input type="number" name="cost" value="{{ old('cost') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    step="0.01" min="0" placeholder="0.00">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <input type="text" name="description" value="{{ old('description') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-1.5"
-                                    placeholder="Optional description">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Ingredients</label>
+                            <select name="ingredients[]" multiple
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#5839a3] focus:ring-[#5839a3] dark:bg-gray-700 dark:border-gray-600 text-sm p-2"
+                                size="5">
+                                @foreach($ingredients as $ingredient)
+                                    <option value="{{ $ingredient->id }}">{{ $ingredient->name }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
                         </div>
 
                         <!-- ✅ NEW: Image Upload Section -->
@@ -300,30 +394,12 @@
                     {{ !request('category') ? 'selected' : '' }}>
                 All Categories
             </option>
-            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Frozen'])) }}" 
-                    {{ request('category') == 'Frozen' ? 'selected' : '' }}>
-                Frozen
-            </option>
-            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Liquid'])) }}" 
-                    {{ request('category') == 'Liquid' ? 'selected' : '' }}>
-                Liquid
-            </option>
-            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Solid'])) }}" 
-                    {{ request('category') == 'Solid' ? 'selected' : '' }}>
-                Solid
-            </option>
-            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Pastries'])) }}" 
-                    {{ request('category') == 'Pastries' ? 'selected' : '' }}>
-                Pastries
-            </option>
-            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Meat'])) }}" 
-                    {{ request('category') == 'Meat' ? 'selected' : '' }}>
-                Meat
-            </option>
-            <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => 'Others'])) }}" 
-                    {{ request('category') == 'Others' ? 'selected' : '' }}>
-                Others
-            </option>
+            @foreach($categories as $category)
+                <option value="{{ route('products.index', array_merge(request()->except('category'), ['category' => $category->name])) }}" 
+                        {{ request('category') == $category->name ? 'selected' : '' }}>
+                    {{ $category->name }}
+                </option>
+            @endforeach
         </select>
     </div>
 
@@ -344,18 +420,15 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Image</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Beginning</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Stock</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reorder</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cost</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ending</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Image</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Active</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ingredients</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200">
@@ -377,32 +450,13 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                     {{ $product->code }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                     {{ $product->name }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->unit }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->beginning ?? 0 }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->current_stock }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->reorder_level ?? 0 }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    @if(isset($product->cost))
-                                        ₱{{ number_format($product->cost, 2) }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                     <span class="px-2 py-1 rounded-full text-xs font-medium
                                         @if($product->category == 'Solid') bg-blue-100 text-blue-800
                                         @elseif($product->category == 'Liquid') bg-green-100 text-green-800
@@ -411,23 +465,21 @@
                                         {{ $product->category }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if ($product->current_stock == 0)
-                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-800 text-white">
-                                            Out of Stock
-                                        </span>
-                                    @elseif($product->current_stock <= ($product->reorder_level ?? 0))
-                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500 text-white">
-                                            Low Stock
-                                        </span>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $product->type ?? '-' }}
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $product->unit }}
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                    @if($product->is_active)
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
                                     @else
-                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            In Stock
-                                        </span>
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $product->ending ?? ($product->reorder_level - $product->current_stock) }}
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                    <a href="{{ route('products.ingredients', $product->id) }}" class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 hover:bg-purple-200 transition cursor-pointer">{{ $product->ingredients->count() }}</a>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                     <!-- Edit button -->
@@ -436,15 +488,14 @@
                                         '{{ $product->code }}',
                                         '{{ $product->name }}',
                                         '{{ $product->category }}',
+                                        '{{ $product->flavors->pluck('flavor_name')->implode(',') }}',
+                                        '{{ $product->type ?? '' }}',
                                         '{{ $product->unit }}',
-                                        '{{ $product->current_stock }}',
-                                        '{{ $product->reorder_level }}',
+                                        '{{ $product->is_active ? '1' : '0' }}',
                                         '{{ $product->image }}',
                                         '{{ addslashes($product->description) }}',
-                                        '{{ $product->beginning ?? 0 }}',
-                                        '{{ $product->cost ?? 0 }}',
-                                        '{{ $product->credit ?? 0 }}',
-                                        '{{ addslashes($product->other ?? '') }}'
+                                        '{{ $product->ingredients->pluck('id')->implode(',') }}',
+                                        '{{ $product->flavors->mapWithKeys(fn($f) => [$f->flavor_name => $f->sizes->pluck('column_config.column_name')->filter()->values()])->toJson() }}'
                                     )" class="inline-flex items-center px-3 py-1.5 text-white text-sm font-medium rounded-lg transition duration-150 ease-in-out"
                                         style="background-color: #5839a3;">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -570,49 +621,76 @@
                             style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
                             required>
                             <option value="">Select Category</option>
-                            <option value="Frozen">Frozen</option>
-                            <option value="Liquid">Liquid</option>
-                            <option value="Solid">Solid</option>
-                            <option value="Pastries">Pastries</option>
-                            <option value="Meat">Meat</option>
-                            <option value="Others">Others</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->name }}">{{ $category->name }}</option>
+                            @endforeach
                         </select>
                     </div>
 
                     <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Type</label>
+                        <select id="simple_type" name="type"
+                            style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
+                            onchange="updateFlavorSizes('simple')">
+                            <option value="">Select Type</option>
+                            <option value="Bottle">Bottle</option>
+                            <option value="Sachet">Sachet</option>
+                            <option value="Cup">Cup</option>
+                            <option value="Yogurt">Yogurt</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Flavor</label>
+                        <select id="simple_flavors" name="flavors[]" multiple
+                            style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
+                            size="5"
+                            onchange="updateFlavorSizes('simple')">
+                            @foreach($flavors as $flavor)
+                                <option value="{{ $flavor->name }}">{{ $flavor->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                    </div>
+
+                    <!-- Per-Flavor Sizes Section -->
+                    <div id="simple_flavor_sizes" style="margin-bottom: 15px; display:none;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Sizes per Flavor</label>
+                        <div class="bg-gray-50 rounded-lg p-3 space-y-2" id="simple_flavor_sizes_rows">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Select type and flavors above to configure sizes per flavor</p>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 500;">Unit</label>
-                        <input type="text" id="simple_unit" name="unit"
+                        <select id="simple_unit" name="unit"
                             style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
                             required>
+                            <option value="">Select Unit</option>
+                            <option value="Pieces">Pieces</option>
+                            <option value="Kilos">Kilos</option>
+                            <option value="Grams">Grams</option>
+                            <option value="Liters">Liters</option>
+                            <option value="Packs">Packs</option>
+                            <option value="Cans">Cans</option>
+                            <option value="Bags">Bags</option>
+                            <option value="Boxes">Boxes</option>
+                            <option value="Bottles">Bottles</option>
+                            <option value="Cups">Cups</option>
+                            <option value="Sachets">Sachets</option>
+                            <option value="Milliliters">Milliliters</option>
+                            <option value="Dozen">Dozen</option>
+                        </select>
                     </div>
 
                     <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Current Stock</label>
-                            <input type="number" id="simple_stock" name="current_stock"
-                                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
-                                min="0" required>
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Reorder Level</label>
-                            <input type="number" id="simple_reorder" name="reorder_level"
-                                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
-                                min="0" required>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Beginning</label>
-                            <input type="number" id="simple_beginning" name="beginning"
-                                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
-                                min="0" value="0">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cost</label>
-                            <input type="number" id="simple_cost" name="cost"
-                                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
-                                step="0.01" min="0" placeholder="0.00">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Active</label>
+                            <select id="simple_is_active" name="is_active"
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
                         </div>
                     </div>
 
@@ -621,6 +699,18 @@
                         <textarea name="description" id="simple_description" rows="3"
                             style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; resize: vertical;"
                             placeholder="Optional description"></textarea>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Ingredients</label>
+                        <select id="simple_ingredients" name="ingredients[]" multiple
+                            style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;"
+                            size="5">
+                            @foreach($ingredients as $ingredient)
+                                <option value="{{ $ingredient->id }}">{{ $ingredient->name }}</option>
+                            @endforeach
+                        </select>
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">Hold Ctrl/Cmd to select multiple</p>
                     </div>
 
                     <div
@@ -723,3 +813,20 @@
     });
 </script>
 @endif
+
+<!-- Product type storage script -->
+<script>
+function storeSelectedType(type) {
+    if (type) {
+        localStorage.setItem('selectedProductType', type);
+    }
+}
+
+// Also store the initial value on page load if there's a selected type
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.getElementById('create_type');
+    if (typeSelect && typeSelect.value) {
+        localStorage.setItem('selectedProductType', typeSelect.value);
+    }
+});
+</script>

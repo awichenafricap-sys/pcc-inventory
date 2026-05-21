@@ -13,23 +13,40 @@ class ProductFlavor extends Model
         'product_id',
         'flavor_name',
         'measurement',
-        'sizes',
-        'ingredients',
+        'ingredients_text',
         'batch',
-        'qty_200ml',
-        'qty_500ml',
-        'qty_1000ml',
+        'is_active',
+        'in_items',
     ];
 
     protected $casts = [
         'batch' => 'integer',
-        'qty_200ml' => 'integer',
-        'qty_500ml' => 'integer',
-        'qty_1000ml' => 'integer',
+        'is_active' => 'boolean',
+        'in_items' => 'decimal:2',
     ];
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function sizes()
+    {
+        return $this->hasMany(ProductSize::class);
+    }
+
+    public function recipeItems()
+    {
+        return $this->hasMany(ProductRecipeItem::class);
+    }
+
+    public function productionSchedules()
+    {
+        return $this->hasMany(ProductionSchedule::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }
